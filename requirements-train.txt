@@ -1,0 +1,6 @@
+# Extra requirements to (re-)train the PPO navigation policy.
+#   pip install -r requirements.txt -r requirements-train.txt
+#   python -m training.train_ppo --timesteps 2000000 --seed 0 --export-npz
+torch>=2.1
+stable-baselines3>=2.3
+matplotlib>=3.7

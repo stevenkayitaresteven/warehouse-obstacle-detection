@@ -1,0 +1,11 @@
+# Optional: real-camera perception (YOLO11n + Depth Anything V2-Small),
+# used by the "Real image perception" demo tab and the Colab training of
+# the YOLO detector. PyTorch is provided by Colab; locally install torch
+# first (https://pytorch.org/get-started/locally/).
+ultralytics
+transformers
+opencv-python
+Pillow
+numpy
+pandas
+matplotlib

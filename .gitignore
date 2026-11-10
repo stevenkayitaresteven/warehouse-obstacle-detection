@@ -48,6 +48,11 @@ results/demo/*
 !results/metrics/.gitkeep
 !results/graphs/.gitkeep
 !results/demo/.gitkeep
+# ...but keep the small simulation results that the demo displays
+!results/metrics/navigation_eval.json
+!results/metrics/training_*.csv
+!results/graphs/ppo_training_curve.png
+!results/demo/*.gif
 
 # OS files
 .DS_Store
@@ -63,3 +68,12 @@ configs/data.colab.yaml
 
 # Experiment logs
 runs/
+
+# Local logs
+logs/
+
+# Trained PPO models ARE committed (small) so the demo runs out of the box
+!models/
+!models/*.npz
+!models/*.zip
+!models/*.json
