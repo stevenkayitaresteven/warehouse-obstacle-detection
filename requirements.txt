@@ -1,23 +1,9 @@
-# Computer Vision
-ultralytics
-opencv-python
-Pillow
-
-# Deep Learning
-# PyTorch is provided by the Colab runtime.
-# Do not reinstall torch, torchvision or torchaudio here.
-
-# Reinforcement Learning
-stable-baselines3
-gymnasium
-
-# Data Processing and Visualization
-numpy
-pandas
-matplotlib
-
-# Interactive Demonstration
-gradio
-
-# Depth Estimation
-transformers
+# Core requirements for the interactive demo + warehouse simulation.
+# No PyTorch needed: the trained PPO policy is exported to NumPy.
+#   pip install -r requirements.txt
+#   python app.py
+numpy>=1.23
+gymnasium>=0.29
+opencv-python>=4.7
+Pillow>=9.0
+gradio>=4.44,<7
