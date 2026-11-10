@@ -18,7 +18,7 @@ M = ROOT / "results" / "metrics"
 def read_curve():
     pts = []
     p1 = M / "training_seed0_phase1.csv"
-    p2 = M / "training_seed0.csv"
+    p2 = M / "training_seed0_v3.csv"
     for path, cut in ((p1, 600_000), (p2, None)):
         if not path.exists():
             continue
@@ -42,7 +42,10 @@ def main():
     nav = json.loads((M / "navigation_eval.json").read_text())
     perc = json.loads((M / "perception_eval.json").read_text())
     curve = read_curve()
+    model_meta = json.loads((ROOT / "models" / "ppo_warehouse_seed0.json")
+                            .read_text())
     data = {
+        "total_steps_m": round(model_meta["timesteps"] / 1e6, 1),
         "curve": {
             "steps_m": [round(t / 1e6, 2) for t, _, _ in curve],
             "reward": [round(r, 1) for _, r, _ in curve],

@@ -114,16 +114,51 @@ Motors (unicycle model, acceleration and braking limits)
 | State | 21 fused depth rays, 7 sector distances, 7 sector classes (person or forklift), 7 closing speeds, direction to the next path waypoint (sin, cos), goal distance, speed, uncertainty. 47 values in [-1, 1]. |
 | Actions | GO (1.5 m/s), SLOW (0.6 m/s), STOP, TURN_LEFT, TURN_RIGHT |
 | Reward | + progress along the global path · +10 goal · −10 collision · − near-miss (wider margin around people) · − harsh braking · −0.01 per step |
-| Algorithm | PPO, Stable-Baselines3, 4 parallel environments, 2 M steps, lr 3e-4, n_steps 1024, batch 512, γ 0.99, GAE λ 0.95, clip 0.2, entropy 0.01 |
+| Algorithm | PPO, Stable-Baselines3, 4 parallel environments, 1.2 M steps, lr 3e-4, n_steps 1024, batch 512, γ 0.99, GAE λ 0.95, clip 0.2, entropy 0.01 |
 | Domain randomisation | Rack layout, cross-aisles, obstacle counts and speeds, depth noise, detector recall (80–97 %), shadow false returns, share of reflective pallets |
 | Global path | Grid distance field (Dijkstra) over the *static* rack map. Workers, forklifts, pallets and boxes are **not** on the map. **Event-triggered replanning:** when perceived obstacles block the next 3.5 m of the path for 3 frames, the planner adds them as high-cost regions and replans around them, the same way a costmap is updated from sensors in a real AMR stack. |
-| Training schedule | Phase 1: 600 k steps with the static global path only. The policy learned to stop safely but got stuck behind pallets lying on the path. Phase 2: continued from that checkpoint to 2 M steps with replanning enabled. |
+| Training schedule | Phase 1: 600 k steps with the static global path only. The policy learned to stop safely, but it got stuck behind pallets lying on the path. Phase 2: continued from that checkpoint to 1.2 M steps with replanning enabled. A first phase-2 attempt measured progress on the *replanned* field, and the policy learned to drive in circles to farm reward (reward hacking). Progress is now measured on the static map distance. |
 
 ---
 
 ## 📊 Results (simulation)
 
-RESULTS_PLACEHOLDER
+Evaluation: 100 episodes per row on held-out random layouts (`python -m scripts.evaluate_navigation`). Trained policy: 1.2 M PPO steps (seed 0).
+
+#### RL vs rule-based baseline
+
+| Controller | Reached goal | Collision | Time limit | Time to goal (s) |
+|---|---|---|---|---|
+| **PPO + safety shield (full system)** | 82% | 0% | 18% | 37.6 |
+| PPO only | 86% | 8% | 6% | 27.6 |
+| Rule-based baseline (stop if < 1 m) | 55% | 38% | 7% | 29.6 |
+| Rule-based + shield | 63% | 0% | 37% | 45.7 |
+
+#### Perception ablation (PPO + shield)
+
+| Perception | Reached goal | Collision | Collisions by class |
+|---|---|---|---|
+| Detector only (existing method) | 53% | 41% | {'unknown': 41} |
+| + depth fusion | 73% | 0% | - |
+| + uncertainty slowdown | 67% | 0% | - |
+| + tracking (full system) | 82% | 0% | - |
+
+#### Reflective hard cases (every pallet stretch-wrapped)
+
+| Perception | Reached goal | Collision |
+|---|---|---|
+| + depth fusion | 68% | 0% |
+| + uncertainty slowdown | 64% | 0% |
+| + tracking (full system) | 77% | 0% |
+
+#### Perception metrics (`python -m scripts.perception_metrics`)
+
+* Obstacle recall (an obstacle within 5.5 m is reported as anything): detector only **73.2%** vs fusion **99.9%**. Unknown fallen boxes: 0% vs 100%.
+* Uncertainty score near pallets: normal 0.09 (slowdown 3% of frames) vs stretch-wrapped 0.51 (slowdown 87%).
+* Safety shield, scripted "worker steps out at about 1 m": collision prevented in **100%** of 50 scenes.
+* Policy + shield decision time: 0.21 ms per frame (NumPy, CPU).
+
+**Where it still fails:** the remaining failures with the shield are time-outs, not crashes. The robot waits behind a worker or hesitates in narrow gaps. Uncertainty alone costs some success, because it slows the robot near shiny pallets; tracking recovers it. The detector branch in the simulator is a stand-in with 80–97 % recall, not our trained YOLO11n.
 
 *These are simulation results on held-out random layouts (seeds not used in
 training). They are not physical-robot results.*
@@ -136,9 +171,10 @@ training). They are not physical-robot results.*
 
 ```bash
 pip install -r requirements.txt -r requirements-train.txt
-python -m training.train_ppo --timesteps 2000000 --seed 0 --export-npz   # ~1 h on 4 CPU cores
-python -m training.train_ppo --timesteps 2000000 --seed 1                 # optional: more seeds
+python -m training.train_ppo --timesteps 1200000 --seed 0 --export-npz   # ~30-40 min on 4 CPU cores
+python -m training.train_ppo --timesteps 1200000 --seed 1                 # optional: more seeds
 python -m scripts.plot_training logs/train_seed0.log
+python -m scripts.perception_metrics
 python -m scripts.evaluate_navigation --episodes 100
 python -m scripts.record_demo
 python -m unittest discover -s tests -t .
@@ -160,6 +196,16 @@ The first YOLO11n baseline on 5 LOCO classes reached mAP@50 31.7 % and
 mAP@50-95 13.7 % (precision 41.4 %, recall 35.0 %). This is a baseline, not
 final performance. To use the trained detector in the demo's real-image
 tab, copy `best.pt` to `weights/yolo/best.pt`.
+
+## 📑 Weekly-progress slides
+
+[`presentation/Group3_Weekly_Progress.pptx`](presentation/Group3_Weekly_Progress.pptx) is a 6-slide deck with speaker notes. Every chart in it comes from the metric files above. To regenerate it:
+
+```bash
+python -m presentation.collect_data
+npm install pptxgenjs react-icons react react-dom sharp
+node presentation/build_deck.js
+```
 
 ## Repository structure
 
