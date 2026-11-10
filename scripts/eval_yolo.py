@@ -103,7 +103,12 @@ def main():
     per_class = {names[i]: {"AP50": float(m.box.ap50[k]), "AP50_95": float(m.box.ap[k]),
                             "precision": float(m.box.p[k]), "recall": float(m.box.r[k])}
                  for k, i in enumerate(m.box.ap_class_index)}
-    cm = m.confusion_matrix.matrix.astype(int).tolist()
+    # Confusion matrix at the deployment threshold (conf 0.25), so the
+    # false-alarm counts are not inflated by the 0.001 threshold used for mAP.
+    m25 = ft.val(data=str(data_yaml), split="test", imgsz=416, batch=16,
+                 device="cpu", conf=0.25, plots=True, project=str(OUT),
+                 name="test_conf025", exist_ok=True, verbose=False)
+    cm = m25.confusion_matrix.matrix.astype(int).tolist()
 
     imgs = sorted((DATA / "images" / "test").iterdir())
     lbl = DATA / "labels" / "test"
@@ -127,7 +132,7 @@ def main():
         "fine_tuned": {"mAP50": float(m.box.map50), "mAP50_95": float(m.box.map),
                        "precision": float(m.box.mp), "recall": float(m.box.mr),
                        "per_class": per_class},
-        "confusion_matrix": {"labels": [names[i] for i in range(len(names))] + ["background"],
+        "confusion_matrix": {"conf_threshold": 0.25, "labels": [names[i] for i in range(len(names))] + ["background"],
                              "matrix_pred_rows_true_cols": cm},
         "before_vs_after_AP50": {
             "person": {"coco_pretrained": base_person, "fine_tuned": ft_person},

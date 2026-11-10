@@ -17,6 +17,7 @@ const ROOT = path.resolve(__dirname, "..");
 const DATA = JSON.parse(fs.readFileSync(process.argv[2] || path.join(__dirname, "deck_data.json")));
 const OUT = process.argv[3] || path.join(__dirname, "Group3_Weekly_Progress.pptx");
 const SHOT = path.join(__dirname, "demo_screenshot.png");
+const DET = path.join(__dirname, "detections_crop.jpg");
 const APPLY_THEME = process.env.APPLY_THEME_JS;
 
 // ---------------------------------------------------------------------------
@@ -130,12 +131,17 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     { placeholder: "title" });
   s.addText("Group 3 · Camera-Based Obstacle Detection for Autonomous Warehouse Robots",
     { placeholder: "body" });
-  if (fs.existsSync(SHOT)) {
-    s.addImage({ path: SHOT, x: 6.05, y: 0.55, w: 3.5, h: 3.5 * 0.664,
-      sizing: { type: "cover", w: 3.5, h: 3.5 * 0.664 }, objectName: "Demo screenshot",
-      altText: "Simulated warehouse: robot, racks, workers and camera rays" });
-    s.addText("Live demo: python app.py", { x: 6.05, y: 2.95, w: 3.5, h: 0.3,
+  if (fs.existsSync(DET)) {
+    s.addImage({ path: DET, x: 6.05, y: 0.55, w: 3.5, h: 3.5 * 512 / 1344, objectName: "Test detections",
+      altText: "Fine-tuned YOLO11n detecting workers and forklifts on unseen test images" });
+    s.addText("Fine-tuned YOLO11n on unseen test images", { x: 6.05, y: 1.95, w: 3.5, h: 0.3,
       fontSize: 11, color: C.background2, italic: true, margin: 0, isTextBox: true });
+  }
+  if (fs.existsSync(SHOT)) {
+    s.addImage({ path: SHOT, x: 6.05, y: 2.35, w: 1.6, h: 1.6 * 0.664, objectName: "Demo screenshot",
+      altText: "Simulated warehouse with the robot" });
+    s.addText("Simulated robot: python app.py", { x: 7.75, y: 2.6, w: 1.8, h: 0.6,
+      fontSize: 11, color: C.background2, italic: true, margin: 0, valign: "top", isTextBox: true });
   }
   const stats = [
     [pct(map50), "mAP@50 of our fine-tuned YOLO11n on the test images", C.accent1],
@@ -160,7 +166,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
   pres.addSection({ title: "What we built" });
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "What we built" });
   s.addText("What we built this week", { placeholder: "title" });
-  s.addText("All four layers of our design now run end to end", { placeholder: "body" });
+  s.addText("Detector fine-tuned on real images; robot trained in a simulated warehouse", { placeholder: "body" });
   const stages = [
     ["Camera", "single RGB camera, 120° view", ICON.camera, C.accent5],
     ["YOLO11n + depth", "fine-tuned detector + Depth Anything V2", ICON.eye, C.accent5],
@@ -257,25 +263,25 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     const M = YE.confusion_matrix.matrix_pred_rows_true_cols;  // rows = predicted, cols = true
     const n = lab.length;
     const colTot = Array.from({ length: n }, (_, j) => M.reduce((a, r) => a + r[j], 0) || 1);
-    const head = ["True → / Predicted ↓", ...lab.map((l) => l === "background" ? "missed" : l)];
+    const head = ["Predicted ↓ / True →", ...lab.map((l) => l === "background" ? "false alarm (count)" : l)];
     const rows = [head.map((h) => ({ text: h, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk1 }, fontSize: 10, align: "center" } }))];
     for (let i = 0; i < n; i++) {
-      const name = lab[i] === "background" ? "false alarm" : lab[i];
+      const name = lab[i] === "background" ? "missed" : lab[i];
       const cells = [{ text: name, options: { bold: true, fontSize: 10, color: HEX.dk1, fill: { color: HEX.lt2 } } }];
       for (let j = 0; j < n; j++) {
         const isBgBg = i === n - 1 && j === n - 1;
         const p = M[i][j] / colTot[j];
         const diag = i === j && !isBgBg;
-        const fill = isBgBg ? "FFFFFF" : p < 0.005 ? "FFFFFF" : diag ? (p > 0.6 ? "8FD3C9" : "CBECE7") : (p > 0.2 ? "F6D5DA" : "FBE3C4");
+        const fill = isBgBg ? "FFFFFF" : p < 0.005 ? "FFFFFF" : diag ? (p > 0.6 ? "8FD3C9" : "CBECE7") : (i === n - 1 ? "F6D5DA" : "FBE3C4");
         const txt = isBgBg ? "" : (j === n - 1 ? String(M[i][j]) : (p < 0.005 ? "·" : `${Math.round(100 * p)}%`));
         cells.push({ text: txt, options: { fontSize: 11, align: "center", color: HEX.dk1, fill: { color: fill }, bold: diag } });
       }
       rows.push(cells);
     }
     s.addText("Confusion matrix (share of each true class)", { x: 0.5, y: 1.3, w: 4.6, h: 0.3, fontSize: 13, bold: true, color: C.text1, margin: 0, isTextBox: true });
-    s.addTable(rows, { x: 0.5, y: 1.65, w: 4.6, colW: [1.2, 0.85, 0.85, 0.85, 0.85], rowH: 0.36,
+    s.addTable(rows, { x: 0.5, y: 1.65, w: 4.6, colW: [1.15, 0.8, 0.8, 0.8, 1.05], rowH: 0.36,
       border: { type: "solid", color: "D9DEE2", pt: 0.75 }, fontFace: THEME.bodyFontFace, objectName: "YOLO confusion matrix" });
-    s.addText("Columns = true class. Diagonal = correct. Last row = false alarms on background (count).",
+    s.addText("Columns = true class. Diagonal = detected correctly. Last row = objects missed. Last column = false alarms on background (count).",
       { x: 0.5, y: 3.55, w: 4.6, h: 0.45, fontSize: 10, color: C.accent4, valign: "top", margin: 0, isTextBox: true });
     const bva = YE.before_vs_after_AP50;
     const cls = ["person", "forklift", "package"];

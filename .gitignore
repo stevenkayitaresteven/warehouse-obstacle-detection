@@ -78,3 +78,13 @@ logs/
 !models/*.npz
 !models/*.zip
 !models/*.json
+
+# Fine-tuned warehouse detector + its results ARE committed
+!weights/yolo/best.pt
+!results/metrics/yolo_eval.json
+!results/metrics/yolo_results.csv
+!results/metrics/warehouse3_dataset.json
+!results/graphs/yolo_*.png
+!results/graphs/yolo_*.jpg
+results/yolo_eval/
+datasets/processed/warehouse3/
