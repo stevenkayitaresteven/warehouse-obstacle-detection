@@ -547,14 +547,14 @@ class WarehouseEnv(_GymBase):
         if is_static:
             self._static_field = dist
 
-    def _field_value(self, x, y):
+    def _field_value(self, x, y, field=None):
         res = self.cfg.grid_res
         ny, nx = self.grid_shape
         fx = min(max(x / res - 0.5, 0), nx - 1.001)
         fy = min(max(y / res - 0.5, 0), ny - 1.001)
         i0, j0 = int(fx), int(fy)
         ax, ay = fx - i0, fy - j0
-        d = self.dist_field
+        d = self.dist_field if field is None else field
         return float(
             d[j0, i0] * (1 - ax) * (1 - ay) + d[j0, i0 + 1] * ax * (1 - ay)
             + d[j0 + 1, i0] * (1 - ax) * ay + d[j0 + 1, i0 + 1] * ax * ay
@@ -846,7 +846,11 @@ class WarehouseEnv(_GymBase):
 
         clear, cat, person_clear = self._robot_clearance()
         self.min_clearance = min(self.min_clearance, clear)
-        pot = self._field_value(self.x, self.y)
+        # Progress is measured on the STATIC map distance field, which never
+        # changes during an episode (replanning only moves the waypoint).
+        # Using the replanned field here let the policy farm reward by
+        # triggering replans (reward hacking found during evaluation).
+        pot = self._field_value(self.x, self.y, self._static_field)
         progress = self.prev_potential - pot
         self.prev_potential = pot
         reward += c.r_progress * progress + c.r_time
@@ -919,8 +923,7 @@ class WarehouseEnv(_GymBase):
             self._last_replan = self.steps
             self._block_count = 0
             self.replans += 1
-            # potential-based reward: no reward for the field change itself
-            self.prev_potential = self._field_value(self.x, self.y)
+
 
     # ------------------------------------------------------------------
     # Perception emulation
