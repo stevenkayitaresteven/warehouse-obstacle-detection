@@ -259,6 +259,11 @@ HOW = """
 −10 collision, − near-miss (bigger margin for people), − harsh braking,
 − small time cost.
 
+**Global path + replanning:** the static rack map is known, so a grid
+planner (Dijkstra distance field) gives the blue path. Pallets, boxes,
+workers and forklifts are *not* on the map; when the camera sees them
+blocking the path, the path is replanned around them (event-triggered).
+
 **Domain randomisation:** every episode has a new rack layout, obstacle
 counts & speeds, sensor noise, detector recall, shadow-return rate and
 number of reflective pallets — the policy never sees raw pixels, only the

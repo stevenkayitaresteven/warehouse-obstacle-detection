@@ -463,47 +463,89 @@ class WarehouseEnv(_GymBase):
     # ------------------------------------------------------------------
     # Distance field for the global path
     # ------------------------------------------------------------------
-    def _build_distance_field(self):
+    def _build_distance_field(self, obstacle_points=None):
+        """Dijkstra distance-to-goal field on a grid.
+
+        Static racks/walls (the known map) are hard obstacles. Optional
+        ``obstacle_points`` (world coordinates of *perceived* obstacles)
+        are added as soft high-cost regions, i.e. the planner routes around
+        what the camera currently sees (event-triggered replanning).
+        """
         c = self.cfg
         res = c.grid_res
         nx = int(math.ceil(c.width / res))
         ny = int(math.ceil(c.height / res))
+        if obstacle_points is None or len(obstacle_points) == 0:
+            if getattr(self, "_static_field", None) is not None:
+                self.dist_field = self._static_field
+                self.grid_shape = (ny, nx)
+                return
         xs = (np.arange(nx) + 0.5) * res
         ys = (np.arange(ny) + 0.5) * res
         gx, gy = np.meshgrid(xs, ys)  # (ny, nx)
-        occ_clear = np.full(gx.shape, np.inf)
-        for o in self.racks + self.walls:
-            d = _circle_aabb_dist(gx, gy, o.x, o.y, o.hw, o.hh)
-            occ_clear = np.minimum(occ_clear, d)
-        inflate = c.robot_radius + 0.15
-        blocked = occ_clear < inflate
-        # extra cost near racks so the path keeps to the aisle centre
-        extra = np.clip(1.2 - occ_clear, 0.0, None) * 2.0
+        if getattr(self, "_static_grid", None) is None:
+            occ_clear = np.full(gx.shape, np.inf)
+            for o in self.racks + self.walls:
+                d = _circle_aabb_dist(gx, gy, o.x, o.y, o.hw, o.hh)
+                occ_clear = np.minimum(occ_clear, d)
+            inflate = c.robot_radius + 0.15
+            blocked = occ_clear < inflate
+            # extra cost near racks so the path keeps to the aisle centre
+            extra = np.clip(1.2 - occ_clear, 0.0, None) * 2.0
+            self._static_grid = (blocked, extra)
+        blocked, extra = self._static_grid
+        is_static = obstacle_points is None or len(obstacle_points) == 0
+        if not is_static:
+            pts = np.asarray(obstacle_points)
+            dmin = np.full(gx.shape, np.inf)
+            for k in range(0, len(pts), 64):
+                chunk = pts[k:k + 64]
+                dd = np.hypot(gx[..., None] - chunk[:, 0],
+                              gy[..., None] - chunk[:, 1]).min(axis=-1)
+                dmin = np.minimum(dmin, dd)
+            r = c.robot_radius
+            extra = extra + np.where(
+                dmin < r + 0.15, 25.0,
+                np.clip((r + 0.7 - dmin) / 0.55, 0.0, 1.0) * 4.0)
 
         gi = int(min(max(self.goal[0] / res, 0), nx - 1))
         gj = int(min(max(self.goal[1] / res, 0), ny - 1))
-        dist = np.full((ny, nx), np.inf)
-        dist[gj, gi] = 0.0
-        heap = [(0.0, gj, gi)]
-        nbrs = [(-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0), (0, 1, 1.0),
-                (-1, -1, 1.4142), (-1, 1, 1.4142), (1, -1, 1.4142),
-                (1, 1, 1.4142)]
+        # Flat-list Dijkstra (much faster than indexing numpy scalars)
+        n = nx * ny
+        blk = blocked.ravel().tolist()
+        step_cost = (res * (1.0 + extra)).ravel().tolist()
+        INF = float("inf")
+        dist_l = [INF] * n
+        start = gj * nx + gi
+        dist_l[start] = 0.0
+        heap = [(0.0, start)]
+        pop, push = heapq.heappop, heapq.heappush
         while heap:
-            d, j, i = heapq.heappop(heap)
-            if d > dist[j, i]:
+            d, k = pop(heap)
+            if d > dist_l[k]:
                 continue
-            for dj, di, w in nbrs:
-                jj, ii = j + dj, i + di
-                if 0 <= jj < ny and 0 <= ii < nx and not blocked[jj, ii]:
-                    nd = d + w * res * (1.0 + extra[jj, ii])
-                    if nd < dist[jj, ii]:
-                        dist[jj, ii] = nd
-                        heapq.heappush(heap, (nd, jj, ii))
+            j, i = divmod(k, nx)
+            for dj, di, w in ((-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0),
+                              (0, 1, 1.0), (-1, -1, 1.4142),
+                              (-1, 1, 1.4142), (1, -1, 1.4142),
+                              (1, 1, 1.4142)):
+                jj = j + dj
+                ii = i + di
+                if 0 <= jj < ny and 0 <= ii < nx:
+                    kk = jj * nx + ii
+                    if not blk[kk]:
+                        nd = d + w * step_cost[kk]
+                        if nd < dist_l[kk]:
+                            dist_l[kk] = nd
+                            push(heap, (nd, kk))
+        dist = np.array(dist_l).reshape(ny, nx)
         finite = np.isfinite(dist)
         if finite.any():
             dist[~finite] = dist[finite].max() + 5.0
         self.dist_field = dist
         self.grid_shape = (ny, nx)
+        if is_static:
+            self._static_field = dist
 
     def _field_value(self, x, y):
         res = self.cfg.grid_res
@@ -639,8 +681,15 @@ class WarehouseEnv(_GymBase):
         self.path_length = 0.0
         self.last_action = STOP
 
+        self._static_grid = None
+        self._static_field = None
         self._build_distance_field()
         self.prev_potential = self._field_value(self.x, self.y)
+        self._seen_points = []      # (step, world points) of perceived obstacles
+        self._block_count = 0
+        self._last_replan = -100
+        self.replans = 0
+        self.replanned = False
         self.percep = PerceptionState()
         self.sec_dist = None
         self.percep.sector_uncertainty = np.zeros(c.n_sectors)
@@ -827,8 +876,51 @@ class WarehouseEnv(_GymBase):
         truncated = self.steps >= c.max_steps and not terminated
 
         self._perceive()
+        if not terminated:
+            self._maybe_replan()
         return self._observation(), float(reward), terminated, truncated, \
             self._info()
+
+    # ------------------------------------------------------------------
+    def _perceived_obstacle_points(self):
+        """World coordinates of fused returns that are NOT the static map."""
+        c = self.cfg
+        d = self.fused_rays
+        m = (d < c.max_range - 0.05) & ~np.isin(self.ray_labels,
+                                                 [RACK, WALL])
+        a = self.theta + self.ray_angles[m]
+        return np.stack([self.x + d[m] * np.cos(a),
+                         self.y + d[m] * np.sin(a)], axis=1)
+
+    def _maybe_replan(self, memory_steps=25, cooldown=10):
+        """Event-triggered replanning around perceived obstacles."""
+        c = self.cfg
+        pts = self._perceived_obstacle_points()
+        self._seen_points.append((self.steps, pts))
+        self._seen_points = [(t, p) for t, p in self._seen_points
+                             if self.steps - t <= memory_steps]
+        path = np.array(self.global_path(self.x, self.y, max_len=14))
+        blocked = False
+        if len(pts) and len(path) > 2:
+            dd = np.hypot(path[1:, None, 0] - pts[None, :, 0],
+                          path[1:, None, 1] - pts[None, :, 1])
+            blocked = bool((dd < c.robot_radius + 0.2).any())
+        self._block_count = self._block_count + 1 if blocked else 0
+        since = self.steps - self._last_replan
+        if (self._block_count >= 3 and since >= cooldown) or \
+                (self.replanned and not blocked and since >= 40):
+            recent = [p for _, p in self._seen_points if len(p)]
+            allpts = np.concatenate(recent) if recent else np.zeros((0, 2))
+            if len(allpts) > 400:
+                allpts = allpts[:: int(math.ceil(len(allpts) / 400))]
+            self._build_distance_field(allpts if self._block_count >= 3
+                                       else None)
+            self.replanned = self._block_count >= 3
+            self._last_replan = self.steps
+            self._block_count = 0
+            self.replans += 1
+            # potential-based reward: no reward for the field change itself
+            self.prev_potential = self._field_value(self.x, self.y)
 
     # ------------------------------------------------------------------
     # Perception emulation

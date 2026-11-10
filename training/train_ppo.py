@@ -39,6 +39,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--n-envs", type=int, default=8)
     ap.add_argument("--out", default=str(ROOT / "models"))
+    ap.add_argument("--init", default=None,
+                    help="continue training from this SB3 .zip checkpoint")
     ap.add_argument("--export-npz", action="store_true",
                     help="also export this run's actor as the demo policy")
     args = ap.parse_args()
@@ -61,7 +63,12 @@ def main():
     vec_cls = SubprocVecEnv if args.n_envs > 1 else DummyVecEnv
     venv = vec_cls([wrapped(i) for i in range(args.n_envs)])
 
-    model = PPO(
+    if args.init:
+        model = PPO.load(args.init, env=venv, device="cpu")
+        print(f"Continuing from {args.init} "
+              f"({model.num_timesteps} steps done)")
+    else:
+        model = PPO(
         "MlpPolicy",
         venv,
         learning_rate=3e-4,
@@ -79,13 +86,14 @@ def main():
         verbose=1,
         device="cpu",
         tensorboard_log=None,
-    )
+        )
     ckpt = CheckpointCallback(save_freq=max(200_000 // args.n_envs, 1),
                               save_path=str(ROOT / "checkpoints" / "ppo"),
                               name_prefix=f"ppo_seed{args.seed}")
     t0 = time.time()
-    model.learn(total_timesteps=args.timesteps, callback=ckpt,
-                progress_bar=False)
+    remaining = max(args.timesteps - model.num_timesteps, 0)
+    model.learn(total_timesteps=remaining, callback=ckpt,
+                progress_bar=False, reset_num_timesteps=args.init is None)
     elapsed = time.time() - t0
 
     zip_path = out / f"ppo_warehouse_seed{args.seed}.zip"
@@ -95,13 +103,10 @@ def main():
     if args.export_npz:
         export_sb3_to_numpy(model, out / "ppo_warehouse_policy.npz")
 
-    # Training curve from Monitor logs
-    ep_rewards = []
-    for env_idx in range(args.n_envs):
-        pass
     meta = {
         "seed": args.seed,
-        "timesteps": args.timesteps,
+        "timesteps": int(model.num_timesteps),
+        "initialised_from": args.init,
         "n_envs": args.n_envs,
         "train_seconds": round(elapsed, 1),
         "algorithm": "PPO (Stable-Baselines3)",

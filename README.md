@@ -114,9 +114,10 @@ Motors (unicycle model, acceleration and braking limits)
 | State | 21 fused depth rays, 7 sector distances, 7 sector classes (person or forklift), 7 closing speeds, direction to the next path waypoint (sin, cos), goal distance, speed, uncertainty. 47 values in [-1, 1]. |
 | Actions | GO (1.5 m/s), SLOW (0.6 m/s), STOP, TURN_LEFT, TURN_RIGHT |
 | Reward | + progress along the global path · +10 goal · −10 collision · − near-miss (wider margin around people) · − harsh braking · −0.01 per step |
-| Algorithm | PPO, Stable-Baselines3, 8 parallel environments, 2 M steps |
+| Algorithm | PPO, Stable-Baselines3, 4 parallel environments, 2 M steps, lr 3e-4, n_steps 1024, batch 512, γ 0.99, GAE λ 0.95, clip 0.2, entropy 0.01 |
 | Domain randomisation | Rack layout, cross-aisles, obstacle counts and speeds, depth noise, detector recall (80–97 %), shadow false returns, share of reflective pallets |
-| Global path | Grid distance field (Dijkstra) over the *static* rack map. Workers, forklifts, pallets and boxes are **not** on the map, so the policy must avoid them using perception alone. |
+| Global path | Grid distance field (Dijkstra) over the *static* rack map. Workers, forklifts, pallets and boxes are **not** on the map. **Event-triggered replanning:** when perceived obstacles block the next 3.5 m of the path for 3 frames, the planner adds them as high-cost regions and replans around them, the same way a costmap is updated from sensors in a real AMR stack. |
+| Training schedule | Phase 1: 600 k steps with the static global path only. The policy learned to stop safely but got stuck behind pallets lying on the path. Phase 2: continued from that checkpoint to 2 M steps with replanning enabled. |
 
 ---
 

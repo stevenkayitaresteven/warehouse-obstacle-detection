@@ -1,7 +1,11 @@
 """
-Plot the PPO training curve from the Stable-Baselines3 console log.
+Plot the PPO training curve from Stable-Baselines3 console logs.
 
     python -m scripts.plot_training logs/train_seed0.log
+    python -m scripts.plot_training logs/a.log:600000 logs/b.log
+
+``path:N`` keeps only the rows of that log up to N timesteps (used when a
+run was continued from a checkpoint at N steps).
 """
 
 from __future__ import annotations
@@ -36,8 +40,11 @@ def main():
     fig, ax = plt.subplots(1, 2, figsize=(11, 3.8))
     out_dir = ROOT / "results" / "graphs"
     out_dir.mkdir(parents=True, exist_ok=True)
-    for lp in logs:
+    for spec in logs:
+        lp, _, cut = spec.partition(":")
         rows = parse(lp)
+        if cut:
+            rows = [r for r in rows if r["total_timesteps"] <= int(cut)]
         if not rows:
             continue
         name = Path(lp).stem.replace("train_", "")
