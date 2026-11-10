@@ -35,6 +35,13 @@ checkpoints/ppo/*
 !checkpoints/ppo/.gitkeep
 
 # Generated results
+results/*.png
+results/*.jpg
+results/*.jpeg
+results/*.csv
+results/*.json
+results/*.yaml
+results/*.yml
 results/metrics/*
 results/graphs/*
 results/demo/*
@@ -49,3 +56,10 @@ results/demo/*
 /yolo11n.pt
 /bus.jpg
 *.pt
+
+# Runtime-specific dataset configurations
+configs/data.runtime.yaml
+configs/data.colab.yaml
+
+# Experiment logs
+runs/

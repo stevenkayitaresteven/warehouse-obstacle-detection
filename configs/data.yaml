@@ -1,13 +1,13 @@
-# YOLO dataset configuration
-# Dataset paths will be configured when we prepare the dataset.
+# Default dataset configuration.
+# Update the dataset root for the machine running YOLO training.
 
-train: ../datasets/processed/yolo/images/train
-val: ../datasets/processed/yolo/images/val
+path: ../datasets/processed/yolo
+train: images/train
+val: images/val
 
 names:
-  0: person
-  1: pallet
-  2: small_load_carrier
+  0: small_load_carrier
+  1: forklift
+  2: pallet
   3: stillage
-  4: forklift
-  5: pallet_truck
+  4: pallet_truck
