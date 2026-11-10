@@ -60,8 +60,8 @@ class SimSession:
         self.env = WarehouseEnv(EnvConfig())
         self.controller = "ppo_shield"
         self.perception = "full"
-        self.layout_seed = 7
-        self.episode_seed = 7
+        self.layout_seed = 12
+        self.episode_seed = 12
         self.scenario = "Random warehouse"
         self.counts = None
         self.reflective = None

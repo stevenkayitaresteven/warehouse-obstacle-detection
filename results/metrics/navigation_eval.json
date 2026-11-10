@@ -1,0 +1,164 @@
+{
+  "note": "Simulation results on held-out random layouts. Not physical-robot results.",
+  "episodes": 100,
+  "controllers": {
+    "ppo_shield": {
+      "episodes": 100,
+      "success_rate": 0.82,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.18,
+      "mean_time_to_goal_s": 37.62195121951219,
+      "near_misses_per_episode": 2.35,
+      "shield_interventions_per_episode": 55.56,
+      "mean_return": 19.596217696234017,
+      "collisions_by_class": {}
+    },
+    "ppo": {
+      "episodes": 100,
+      "success_rate": 0.86,
+      "collision_rate": 0.08,
+      "timeout_rate": 0.06,
+      "mean_time_to_goal_s": 27.586046511627902,
+      "near_misses_per_episode": 1.69,
+      "shield_interventions_per_episode": 0.0,
+      "mean_return": 23.92615984423943,
+      "collisions_by_class": {
+        "rack": 3,
+        "pallet": 1,
+        "person": 2,
+        "unknown": 2
+      }
+    },
+    "rule": {
+      "episodes": 100,
+      "success_rate": 0.55,
+      "collision_rate": 0.38,
+      "timeout_rate": 0.07,
+      "mean_time_to_goal_s": 29.570909090909094,
+      "near_misses_per_episode": 3.17,
+      "shield_interventions_per_episode": 0.0,
+      "mean_return": 9.973755123520952,
+      "collisions_by_class": {
+        "rack": 14,
+        "unknown": 7,
+        "person": 4,
+        "forklift": 9,
+        "pallet": 4
+      }
+    },
+    "rule_shield": {
+      "episodes": 100,
+      "success_rate": 0.63,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.37,
+      "mean_time_to_goal_s": 45.66984126984128,
+      "near_misses_per_episode": 4.14,
+      "shield_interventions_per_episode": 97.71,
+      "mean_return": 9.228784775036713,
+      "collisions_by_class": {}
+    }
+  },
+  "ablation": {
+    "detector_only": {
+      "episodes": 100,
+      "success_rate": 0.53,
+      "collision_rate": 0.41,
+      "timeout_rate": 0.06,
+      "mean_time_to_goal_s": 27.750943396226415,
+      "near_misses_per_episode": 2.2,
+      "shield_interventions_per_episode": 45.77,
+      "mean_return": 11.568348286690913,
+      "collisions_by_class": {
+        "unknown": 41
+      }
+    },
+    "fusion": {
+      "episodes": 100,
+      "success_rate": 0.73,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.27,
+      "mean_time_to_goal_s": 46.227397260273975,
+      "near_misses_per_episode": 2.48,
+      "shield_interventions_per_episode": 112.34,
+      "mean_return": 15.464875620521719,
+      "collisions_by_class": {}
+    },
+    "fusion_uncertainty": {
+      "episodes": 100,
+      "success_rate": 0.67,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.33,
+      "mean_time_to_goal_s": 43.59104477611941,
+      "near_misses_per_episode": 2.67,
+      "shield_interventions_per_episode": 112.72,
+      "mean_return": 14.764232656384054,
+      "collisions_by_class": {}
+    },
+    "full": {
+      "episodes": 100,
+      "success_rate": 0.82,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.18,
+      "mean_time_to_goal_s": 37.62195121951219,
+      "near_misses_per_episode": 2.35,
+      "shield_interventions_per_episode": 55.56,
+      "mean_return": 19.596217696234017,
+      "collisions_by_class": {}
+    }
+  },
+  "reflective": {
+    "fusion": {
+      "episodes": 100,
+      "success_rate": 0.68,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.32,
+      "mean_time_to_goal_s": 41.91176470588236,
+      "near_misses_per_episode": 1.9,
+      "shield_interventions_per_episode": 114.7,
+      "mean_return": 14.847639888850521,
+      "collisions_by_class": {}
+    },
+    "fusion_uncertainty": {
+      "episodes": 100,
+      "success_rate": 0.64,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.36,
+      "mean_time_to_goal_s": 39.53125,
+      "near_misses_per_episode": 1.88,
+      "shield_interventions_per_episode": 119.89,
+      "mean_return": 12.31857848883812,
+      "collisions_by_class": {}
+    },
+    "full": {
+      "episodes": 100,
+      "success_rate": 0.77,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.23,
+      "mean_time_to_goal_s": 35.65194805194805,
+      "near_misses_per_episode": 1.65,
+      "shield_interventions_per_episode": 42.42,
+      "mean_return": 19.423043961737417,
+      "collisions_by_class": {}
+    }
+  },
+  "shield_worker_step_out_stop_rate": 1.0,
+  "seeds": {
+    "per_seed": {
+      "ppo_warehouse_seed0": {
+        "episodes": 100,
+        "success_rate": 0.82,
+        "collision_rate": 0.0,
+        "timeout_rate": 0.18,
+        "mean_time_to_goal_s": 37.62195121951219,
+        "near_misses_per_episode": 2.35,
+        "shield_interventions_per_episode": 55.56,
+        "mean_return": 19.596217696234017,
+        "collisions_by_class": {}
+      }
+    },
+    "success_mean": 0.82,
+    "success_std": 0.0,
+    "collision_mean": 0.0,
+    "collision_std": 0.0
+  }
+}

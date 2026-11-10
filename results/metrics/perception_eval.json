@@ -1,0 +1,140 @@
+{
+  "note": "Simulation only. Detector branch is simulated (recall 80-97 %), not the trained YOLO model.",
+  "confusion_detector_only": {
+    "rows_true": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown box"
+    ],
+    "cols_pred": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown obstacle",
+      "missed"
+    ],
+    "matrix": [
+      [
+        1496,
+        0,
+        0,
+        0,
+        131
+      ],
+      [
+        0,
+        1383,
+        0,
+        0,
+        122
+      ],
+      [
+        0,
+        0,
+        397,
+        0,
+        41
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        908
+      ]
+    ]
+  },
+  "obstacle_recall_detector_only": 0.7315765966949531,
+  "unknown_box_recall_detector_only": 0.0,
+  "confusion_full": {
+    "rows_true": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown box"
+    ],
+    "cols_pred": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown obstacle",
+      "missed"
+    ],
+    "matrix": [
+      [
+        2069,
+        0,
+        0,
+        246,
+        0
+      ],
+      [
+        0,
+        3194,
+        0,
+        339,
+        8
+      ],
+      [
+        0,
+        0,
+        714,
+        97,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3562,
+        0
+      ]
+    ]
+  },
+  "obstacle_recall_full": 0.9992179098641119,
+  "unknown_box_recall_full": 1.0,
+  "uncertainty": {
+    "normal pallets": {
+      "frames": 941,
+      "mean": 0.08834033576976856,
+      "slow_rate": 0.03400637619553666,
+      "stop_rate": 0.0,
+      "hist": [
+        620,
+        142,
+        120,
+        55,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "reflective pallets": {
+      "frames": 1049,
+      "mean": 0.5147807833452057,
+      "slow_rate": 0.8703527168732126,
+      "stop_rate": 0.009532888465204958,
+      "hist": [
+        3,
+        24,
+        67,
+        100,
+        240,
+        305,
+        222,
+        87,
+        1,
+        0
+      ]
+    }
+  },
+  "speed": {
+    "policy_plus_shield_ms": 0.20634114749600485,
+    "sim_plus_perception_ms": 1.2158464004996858,
+    "fps": 703.1421428273046
+  }
+}

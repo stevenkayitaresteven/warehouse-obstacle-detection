@@ -1,0 +1,8 @@
+{
+  "seed": 0,
+  "timesteps": 1200000,
+  "schedule": "600k steps static path, then 600k steps with event-triggered replanning (fixed progress reward)",
+  "algorithm": "PPO (Stable-Baselines3)",
+  "policy": "MLP 2x64 tanh (actor & critic)",
+  "n_envs": 4
+}

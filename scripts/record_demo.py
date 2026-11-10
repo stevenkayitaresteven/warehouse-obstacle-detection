@@ -19,8 +19,8 @@ from src.app.sim_session import SCENARIOS, SimSession
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def record(scenario, layout_seed, controller="ppo_shield", max_frames=400,
-           every=2, scale=0.6):
+def record(scenario, layout_seed, controller="ppo_shield", max_frames=450,
+           every=2, scale=0.5):
     sim = SimSession()
     sim.controller = controller
     sim.scenario = scenario
@@ -47,7 +47,7 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     plan = [
-        ("Random warehouse", 7, "random"),
+        ("Random warehouse", 12, "random"),
         ("Worker steps out in front of the robot", 11, "worker_step_out"),
         ("Fallen boxes (unknown objects) in the aisles", 21, "unknown_boxes"),
         ("Shiny stretch-wrapped pallets (reflective)", 5, "reflective"),

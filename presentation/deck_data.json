@@ -1,0 +1,427 @@
+{
+  "total_steps_m": 1.2,
+  "curve": {
+    "steps_m": [
+      0.0,
+      0.03,
+      0.06,
+      0.09,
+      0.12,
+      0.15,
+      0.18,
+      0.2,
+      0.23,
+      0.26,
+      0.29,
+      0.32,
+      0.35,
+      0.38,
+      0.41,
+      0.43,
+      0.46,
+      0.49,
+      0.52,
+      0.55,
+      0.58,
+      0.61,
+      0.64,
+      0.67,
+      0.69,
+      0.72,
+      0.75,
+      0.78,
+      0.81,
+      0.84,
+      0.87,
+      0.89,
+      0.92,
+      0.95,
+      0.98,
+      1.01,
+      1.04,
+      1.07,
+      1.1,
+      1.12,
+      1.15,
+      1.18,
+      1.2
+    ],
+    "reward": [
+      -19.5,
+      -6.9,
+      9.1,
+      13.3,
+      15.0,
+      16.4,
+      14.2,
+      16.6,
+      15.4,
+      17.6,
+      19.0,
+      17.0,
+      17.2,
+      16.8,
+      21.1,
+      20.6,
+      17.0,
+      17.8,
+      19.0,
+      21.8,
+      20.8,
+      17.7,
+      13.3,
+      13.9,
+      16.2,
+      21.6,
+      20.6,
+      21.1,
+      21.8,
+      17.9,
+      23.4,
+      21.7,
+      24.7,
+      25.1,
+      19.1,
+      22.2,
+      22.2,
+      23.8,
+      22.1,
+      21.3,
+      24.4,
+      21.2,
+      23.4
+    ],
+    "ep_seconds": [
+      12.5,
+      48.2,
+      33.6,
+      27.4,
+      26.4,
+      27.0,
+      26.4,
+      30.0,
+      32.8,
+      27.6,
+      27.0,
+      34.0,
+      31.6,
+      31.4,
+      30.8,
+      25.0,
+      30.4,
+      26.4,
+      26.4,
+      26.4,
+      28.0,
+      30.0,
+      43.2,
+      47.0,
+      43.4,
+      38.6,
+      35.8,
+      36.2,
+      35.8,
+      34.6,
+      34.6,
+      34.6,
+      31.4,
+      32.2,
+      32.6,
+      29.8,
+      31.4,
+      29.2,
+      31.0,
+      33.2,
+      33.8,
+      29.8,
+      28.8
+    ]
+  },
+  "controllers": {
+    "ppo_shield": {
+      "episodes": 100,
+      "success_rate": 0.82,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.18,
+      "mean_time_to_goal_s": 37.62195121951219,
+      "near_misses_per_episode": 2.35,
+      "shield_interventions_per_episode": 55.56,
+      "mean_return": 19.596217696234017,
+      "collisions_by_class": {}
+    },
+    "ppo": {
+      "episodes": 100,
+      "success_rate": 0.86,
+      "collision_rate": 0.08,
+      "timeout_rate": 0.06,
+      "mean_time_to_goal_s": 27.586046511627902,
+      "near_misses_per_episode": 1.69,
+      "shield_interventions_per_episode": 0.0,
+      "mean_return": 23.92615984423943,
+      "collisions_by_class": {
+        "rack": 3,
+        "pallet": 1,
+        "person": 2,
+        "unknown": 2
+      }
+    },
+    "rule": {
+      "episodes": 100,
+      "success_rate": 0.55,
+      "collision_rate": 0.38,
+      "timeout_rate": 0.07,
+      "mean_time_to_goal_s": 29.570909090909094,
+      "near_misses_per_episode": 3.17,
+      "shield_interventions_per_episode": 0.0,
+      "mean_return": 9.973755123520952,
+      "collisions_by_class": {
+        "rack": 14,
+        "unknown": 7,
+        "person": 4,
+        "forklift": 9,
+        "pallet": 4
+      }
+    },
+    "rule_shield": {
+      "episodes": 100,
+      "success_rate": 0.63,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.37,
+      "mean_time_to_goal_s": 45.66984126984128,
+      "near_misses_per_episode": 4.14,
+      "shield_interventions_per_episode": 97.71,
+      "mean_return": 9.228784775036713,
+      "collisions_by_class": {}
+    }
+  },
+  "ablation": {
+    "detector_only": {
+      "episodes": 100,
+      "success_rate": 0.53,
+      "collision_rate": 0.41,
+      "timeout_rate": 0.06,
+      "mean_time_to_goal_s": 27.750943396226415,
+      "near_misses_per_episode": 2.2,
+      "shield_interventions_per_episode": 45.77,
+      "mean_return": 11.568348286690913,
+      "collisions_by_class": {
+        "unknown": 41
+      }
+    },
+    "fusion": {
+      "episodes": 100,
+      "success_rate": 0.73,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.27,
+      "mean_time_to_goal_s": 46.227397260273975,
+      "near_misses_per_episode": 2.48,
+      "shield_interventions_per_episode": 112.34,
+      "mean_return": 15.464875620521719,
+      "collisions_by_class": {}
+    },
+    "fusion_uncertainty": {
+      "episodes": 100,
+      "success_rate": 0.67,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.33,
+      "mean_time_to_goal_s": 43.59104477611941,
+      "near_misses_per_episode": 2.67,
+      "shield_interventions_per_episode": 112.72,
+      "mean_return": 14.764232656384054,
+      "collisions_by_class": {}
+    },
+    "full": {
+      "episodes": 100,
+      "success_rate": 0.82,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.18,
+      "mean_time_to_goal_s": 37.62195121951219,
+      "near_misses_per_episode": 2.35,
+      "shield_interventions_per_episode": 55.56,
+      "mean_return": 19.596217696234017,
+      "collisions_by_class": {}
+    }
+  },
+  "reflective": {
+    "fusion": {
+      "episodes": 100,
+      "success_rate": 0.68,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.32,
+      "mean_time_to_goal_s": 41.91176470588236,
+      "near_misses_per_episode": 1.9,
+      "shield_interventions_per_episode": 114.7,
+      "mean_return": 14.847639888850521,
+      "collisions_by_class": {}
+    },
+    "fusion_uncertainty": {
+      "episodes": 100,
+      "success_rate": 0.64,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.36,
+      "mean_time_to_goal_s": 39.53125,
+      "near_misses_per_episode": 1.88,
+      "shield_interventions_per_episode": 119.89,
+      "mean_return": 12.31857848883812,
+      "collisions_by_class": {}
+    },
+    "full": {
+      "episodes": 100,
+      "success_rate": 0.77,
+      "collision_rate": 0.0,
+      "timeout_rate": 0.23,
+      "mean_time_to_goal_s": 35.65194805194805,
+      "near_misses_per_episode": 1.65,
+      "shield_interventions_per_episode": 42.42,
+      "mean_return": 19.423043961737417,
+      "collisions_by_class": {}
+    }
+  },
+  "shield_step_out": 1.0,
+  "episodes": 100,
+  "confusion_full": {
+    "rows_true": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown box"
+    ],
+    "cols_pred": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown obstacle",
+      "missed"
+    ],
+    "matrix": [
+      [
+        2069,
+        0,
+        0,
+        246,
+        0
+      ],
+      [
+        0,
+        3194,
+        0,
+        339,
+        8
+      ],
+      [
+        0,
+        0,
+        714,
+        97,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3562,
+        0
+      ]
+    ]
+  },
+  "confusion_detector_only": {
+    "rows_true": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown box"
+    ],
+    "cols_pred": [
+      "person",
+      "pallet",
+      "forklift",
+      "unknown obstacle",
+      "missed"
+    ],
+    "matrix": [
+      [
+        1496,
+        0,
+        0,
+        0,
+        131
+      ],
+      [
+        0,
+        1383,
+        0,
+        0,
+        122
+      ],
+      [
+        0,
+        0,
+        397,
+        0,
+        41
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        908
+      ]
+    ]
+  },
+  "recall": {
+    "detector_only": 0.7315765966949531,
+    "full": 0.9992179098641119,
+    "unknown_detector_only": 0.0,
+    "unknown_full": 1.0
+  },
+  "uncertainty": {
+    "normal pallets": {
+      "frames": 941,
+      "mean": 0.08834033576976856,
+      "slow_rate": 0.03400637619553666,
+      "stop_rate": 0.0,
+      "hist": [
+        620,
+        142,
+        120,
+        55,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "reflective pallets": {
+      "frames": 1049,
+      "mean": 0.5147807833452057,
+      "slow_rate": 0.8703527168732126,
+      "stop_rate": 0.009532888465204958,
+      "hist": [
+        3,
+        24,
+        67,
+        100,
+        240,
+        305,
+        222,
+        87,
+        1,
+        0
+      ]
+    }
+  },
+  "speed": {
+    "policy_plus_shield_ms": 0.20634114749600485,
+    "sim_plus_perception_ms": 1.2158464004996858,
+    "fps": 703.1421428273046
+  },
+  "yolo_baseline": {
+    "precision": 0.414,
+    "recall": 0.35,
+    "map50": 0.317,
+    "map50_95": 0.1369
+  }
+}

@@ -147,7 +147,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
   });
   s.addNotes(
     "This week we moved from perception-only work to a robot that drives itself. " +
-    "We built a simulated warehouse, trained a PPO reinforcement-learning policy for 2 million steps, " +
+    `We built a simulated warehouse, trained a PPO reinforcement-learning policy for ${DATA.total_steps_m} million steps, ` +
     "and added the safety shield. The three numbers come from " + DATA.episodes +
     " test episodes on warehouse layouts the robot never saw during training. All navigation " +
     "results are from simulation, not a physical robot.");
@@ -188,7 +188,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
   // done list
   const done = [
     "Warehouse simulator (Gymnasium): racks, workers, forklifts, pallets, fallen boxes",
-    "PPO trained 2 M steps with domain randomisation (layouts, noise, lighting cues)",
+    `PPO trained ${DATA.total_steps_m} M steps with domain randomisation (layouts, obstacles, sensor noise)`,
     "Safety shield with decision log + event-triggered path replanning",
     "Interactive Gradio demo: click to drop obstacles, switch perception modes",
   ];
@@ -226,7 +226,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
   const r0 = cv.reward[iP2], r1 = cv.reward[cv.reward.length - 1];
   const notes3 = [
     [ICON.route, "Phase 1 (0–0.6 M)", "Learned to stop safely, but got stuck behind pallets on its path"],
-    [ICON.flag, "Phase 2 (0.6–2 M)", "Path replanning around seen obstacles: reward " + r0.toFixed(0) + " → " + r1.toFixed(0)],
+    [ICON.flag, `Phase 2 (0.6–${DATA.total_steps_m} M)`, "Replans around obstacles it sees; goal reached in " + pct(DATA.controllers.ppo_shield.success_rate) + " of test runs"],
     [ICON.bug, "Bug found and fixed", "Robot 'farmed' reward by driving in circles; we fixed the reward"],
   ];
   notes3.forEach(([ic, h, t], i) => {
@@ -240,7 +240,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     "The reward goes up as the robot learns. In phase 1 it learned that stopping is safe, but it stayed stuck when a pallet " +
     "was on its planned path. We added event-triggered replanning, which is what real warehouse robots do with their costmap. " +
     "We also found reward hacking: the robot drove in circles to collect progress reward when the path changed. We now measure " +
-    "progress on the fixed map distance and retrained from the phase-1 checkpoint. Training takes about 45 minutes on 4 CPU cores.");
+    "progress on the fixed map distance and retrained from the phase-1 checkpoint. Training takes about 30 minutes on 4 CPU cores.");
 
   // =========================================================================
   // 4. Navigation comparison
@@ -287,7 +287,7 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     const rows = [head.map((h) => ({ text: h, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk1 }, fontSize: 9, align: "center" } }))];
     m.forEach((row, i) => {
       const tot = row.reduce((a, b) => a + b, 0) || 1;
-      const cells = [{ text: cm.rows_true[i], options: { bold: true, fontSize: 10, color: HEX.dk1, fill: { color: HEX.lt2 } } }];
+      const cells = [{ text: cm.rows_true[i] === "unknown box" ? "fallen box" : cm.rows_true[i], options: { bold: true, fontSize: 10, color: HEX.dk1, fill: { color: HEX.lt2 } } }];
       row.forEach((v, j) => {
         const p = v / tot;
         const good = j === i || (i === 3 && j === 3);
