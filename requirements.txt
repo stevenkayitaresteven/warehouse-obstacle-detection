@@ -1,0 +1,20 @@
+# Computer Vision
+ultralytics
+opencv-python
+Pillow
+
+# Deep Learning
+# PyTorch is provided by the Colab runtime.
+# Do not reinstall torch, torchvision or torchaudio here.
+
+# Reinforcement Learning
+stable-baselines3
+gymnasium
+
+# Data Processing and Visualization
+numpy
+pandas
+matplotlib
+
+# Interactive Demonstration
+gradio

@@ -1,0 +1,13 @@
+# YOLO dataset configuration
+# Dataset paths will be configured when we prepare the dataset.
+
+train: ../datasets/processed/yolo/images/train
+val: ../datasets/processed/yolo/images/val
+
+names:
+  0: person
+  1: pallet
+  2: small_load_carrier
+  3: stillage
+  4: forklift
+  5: pallet_truck

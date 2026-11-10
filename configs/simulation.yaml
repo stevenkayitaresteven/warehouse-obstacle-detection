@@ -1,0 +1,23 @@
+# Initial warehouse simulation configuration
+
+environment:
+  width: 20
+  height: 20
+  cell_size: 1.0
+
+robot:
+  initial_position: [1, 1]
+  goal_position: [18, 18]
+  initial_speed: 1.0
+
+navigation:
+  algorithm: PPO
+  actions:
+    - move_forward
+    - slow_down
+    - stop
+    - turn_left
+    - turn_right
+
+safety:
+  enabled: true
