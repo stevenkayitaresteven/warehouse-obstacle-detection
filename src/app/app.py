@@ -373,21 +373,25 @@ def build_ui():
                 gr.Image(str(curve), label="PPO training curve",
                          interactive=False)
 
-        with gr.Tab("📷 Real image perception (optional)"):
+        with gr.Tab("📷 Real image detection"):
             gr.Markdown(
-                "Runs the real perception branch on an uploaded photo: "
-                "**YOLO11n** detection + **Depth Anything V2-Small** "
-                "relative depth + driving-corridor fusion + unknown-obstacle "
-                "check. Needs `pip install -r requirements-perception.txt` "
-                "and an internet connection the first time (model "
-                "download). Uses `weights/yolo/best.pt` if present, "
-                "otherwise COCO-pretrained `yolo11n.pt`.")
+                "Runs our **fine-tuned YOLO11n** (person / forklift / "
+                "package, `weights/yolo/best.pt`) on a photo, plus "
+                "**Depth Anything V2-Small** relative depth, driving-corridor "
+                "fusion and the unknown-obstacle check. Needs "
+                "`pip install -r requirements-perception.txt`. Depth "
+                "Anything downloads from Hugging Face the first time; "
+                "without internet the tab falls back to detector-only.")
             with gr.Row():
                 inp = gr.Image(type="numpy", label="Warehouse photo")
                 outp = gr.Image(type="numpy", label="Perception result")
             p_md = gr.Markdown()
             gr.Button("Analyse", variant="primary").click(
                 analyse_image, inp, [outp, p_md])
+            examples = sorted((ROOT / "assets" / "examples").glob("*.jpg"))
+            if examples:
+                gr.Examples([[str(p)] for p in examples], inputs=inp,
+                            label="Test images (never used for training)")
 
         with gr.Tab("ℹ️ How it works"):
             gr.Markdown(HOW)

@@ -38,6 +38,30 @@ def read_curve():
     return pts
 
 
+def read_yolo():
+    """Fine-tuning curve (results.csv) + test-set evaluation."""
+    out = {}
+    ev = M / "yolo_eval.json"
+    if ev.exists():
+        out["eval"] = json.loads(ev.read_text())
+    rc = M / "yolo_results.csv"
+    if rc.exists():
+        rows = list(csv.DictReader(open(rc)))
+        key = lambda r, k: float(next(v for kk, v in r.items() if kk.strip() == k))
+        out["curve"] = {
+            "epoch": [int(key(r, "epoch")) for r in rows],
+            "map50": [round(key(r, "metrics/mAP50(B)"), 3) for r in rows],
+            "map50_95": [round(key(r, "metrics/mAP50-95(B)"), 3) for r in rows],
+            "train_box_loss": [round(key(r, "train/box_loss"), 3) for r in rows],
+            "val_box_loss": [round(key(r, "val/box_loss"), 3) for r in rows],
+        }
+    ds = ROOT / "datasets" / "processed" / "warehouse3"
+    stats = M / "warehouse3_dataset.json"
+    if stats.exists():
+        out["dataset"] = json.loads(stats.read_text())
+    return out
+
+
 def main():
     nav = json.loads((M / "navigation_eval.json").read_text())
     perc = json.loads((M / "perception_eval.json").read_text())
@@ -66,6 +90,7 @@ def main():
         },
         "uncertainty": perc["uncertainty"],
         "speed": perc["speed"],
+        "yolo": read_yolo(),
         "yolo_baseline": {"precision": 0.414, "recall": 0.350,
                           "map50": 0.317, "map50_95": 0.1369},
     }
