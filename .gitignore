@@ -44,8 +44,3 @@ results/demo/*
 
 # OS files
 .DS_Store
-
-# Temporary inference files and model weights
-/yolo11n.pt
-/bus.jpg
-*.pt
