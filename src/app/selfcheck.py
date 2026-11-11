@@ -10,6 +10,11 @@ Self-check for the demo: proves the installed environment can run it.
 
 Prints "SELF-CHECK PASSED" and exits 0 on success (used by run_demo.py
 --check and by CI on Windows, macOS and Linux).
+
+    python -m src.app.selfcheck --perception [--require-depth]
+
+also runs the real-image tab's pipeline (fine-tuned YOLO11n, and Depth
+Anything V2 if it can be downloaded) on an example photo.
 """
 
 from __future__ import annotations
@@ -18,11 +23,34 @@ import sys
 import time
 import urllib.request
 
+import numpy as np
+
+
+def check_perception(require_depth=False):
+    from pathlib import Path
+
+    from PIL import Image
+
+    from src.perception.live_pipeline import analyse
+
+    root = Path(__file__).resolve().parents[2]
+    img = np.asarray(Image.open(root / "assets" / "examples" /
+                                "example_1.jpg").convert("RGB"))
+    cache = {}
+    vis, md = analyse(img, cache)
+    n = int(md.split("**Detector:**")[1].split("—")[1].split("detection")[0])
+    print(f"[perception] detector {cache['detector_name']}: {n} detections; "
+          f"depth model: {'loaded' if cache.get('depth') else 'NOT available'}")
+    assert n > 0, "fine-tuned detector found nothing on the example photo"
+    if require_depth:
+        assert cache.get("depth") is not None, cache.get("depth_error")
+        assert vis.shape[1] == 2 * img.shape[1], "depth panel missing"
+
 
 def main():
     t0 = time.time()
-    import numpy as np
-
+    if "--perception" in sys.argv:
+        check_perception("--require-depth" in sys.argv)
     from src.app.sim_session import SimSession
 
     sim = SimSession()

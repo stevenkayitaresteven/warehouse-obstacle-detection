@@ -1,0 +1,28 @@
+# Start the demo:              docker compose up --build
+# Open:                        http://localhost:7860
+# Stop:                        Ctrl+C   (then: docker compose down)
+#
+# With the real-image detection tab (YOLO11n + Depth Anything, bigger image):
+#                              docker compose --profile full up --build demo-full
+services:
+  demo:
+    build: .
+    image: warehouse-robot-demo:latest
+    ports:
+      - "7860:7860"
+
+  demo-full:
+    profiles: ["full"]
+    build:
+      context: .
+      args:
+        WITH_PERCEPTION: "1"
+    image: warehouse-robot-demo:full
+    ports:
+      - "7860:7860"
+    volumes:
+      # cache downloaded Depth Anything weights between runs
+      - model-cache:/home/app/.cache
+
+volumes:
+  model-cache:
