@@ -1,0 +1,45 @@
+name: Demo runs on Windows, macOS and Linux
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  demo:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        python: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Exactly what a user types in cmd on Windows
+      - name: run_demo.bat --check (Windows cmd)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: call run_demo.bat --check
+
+      # Exactly what a user types in a macOS / Linux terminal
+      - name: ./run_demo.sh --check (macOS / Linux)
+        if: runner.os != 'Windows'
+        run: ./run_demo.sh --check
+
+      # Same launcher, forced onto this job's Python version
+      - name: python run_demo.py --check --recreate
+        run: python run_demo.py --check --recreate
+
+      - name: Unit tests
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then PY=.venv/Scripts/python.exe; else PY=.venv/bin/python; fi
+          "$PY" -m unittest discover -s tests -t . -v

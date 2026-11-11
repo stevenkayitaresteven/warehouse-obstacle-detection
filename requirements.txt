@@ -1,9 +1,9 @@
 # Core requirements for the interactive demo + warehouse simulation.
-# No PyTorch needed: the trained PPO policy is exported to NumPy.
-#   pip install -r requirements.txt
-#   python app.py
+# Python 3.10 - 3.13. No PyTorch needed: the PPO policy is exported to NumPy.
+# Easiest: run `python run_demo.py` (or run_demo.bat / ./run_demo.sh), which
+# installs these into a private .venv/ and starts the demo.
 numpy>=1.23
 gymnasium>=0.29
-opencv-python>=4.7
+opencv-python-headless>=4.7
 Pillow>=9.0
-gradio>=4.44,<7
+gradio>=6.0,<7

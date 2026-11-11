@@ -13,33 +13,61 @@ rule-based **safety shield** can override it.
 
 ---
 
-## 🚀 Run the interactive demo (any PC: Windows, macOS, Linux)
+## 🚀 Run the interactive demo (Windows, macOS, Linux)
 
-You need **Python 3.9 – 3.13**. No GPU and **no PyTorch** are needed: the
-trained PPO policy is shipped as a small NumPy file.
+[![Demo runs on Windows, macOS and Linux](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/demo-smoke-test.yml/badge.svg)](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/demo-smoke-test.yml)
+
+**You only need [Python 3.10 – 3.13](https://www.python.org/downloads/) and an internet connection the first time.**
+No GPU and no PyTorch: the trained robot policy is a small NumPy file. The launcher creates a private environment (`.venv/`), installs everything into it, and opens the demo in your browser. Installing takes 1–3 minutes the first time; later starts take a few seconds.
+
+### Windows (Command Prompt / cmd)
+
+```bat
+git clone https://github.com/stevenkayitaresteven/warehouse-obstacle-detection.git
+cd warehouse-obstacle-detection
+run_demo.bat
+```
+
+No git? Download the ZIP from GitHub (green **Code** button → *Download ZIP*), extract it, and double-click `run_demo.bat`.
+
+### macOS / Linux (Terminal)
 
 ```bash
 git clone https://github.com/stevenkayitaresteven/warehouse-obstacle-detection.git
 cd warehouse-obstacle-detection
-python -m venv .venv
+./run_demo.sh
 ```
 
-Activate the virtual environment:
-
-* Windows (PowerShell): `.venv\Scripts\Activate.ps1`
-* Windows (cmd): `.venv\Scripts\activate.bat`
-* macOS / Linux: `source .venv/bin/activate`
-
-Then install and run:
+### Any OS, one command
 
 ```bash
-pip install -r requirements.txt
-python app.py
+python run_demo.py
 ```
 
-Your browser opens **http://127.0.0.1:7860**. If it does not open on its
-own, paste that address into your browser. To show the demo from another
-device, run `python app.py --share`, which creates a temporary public link.
+(Use `python3` on macOS/Linux and `py` on Windows if `python` is not found.)
+
+The browser opens **http://127.0.0.1:7860**. If it doesn't, paste that address into your browser. Keep the terminal window open while you present, and press **Ctrl+C** to stop.
+
+| Option | What it does |
+|---|---|
+| `--check` | Install, then run a self-check (simulation, policy, web server) and exit. Good for testing the PC before class. |
+| `--full` | Also install the 📷 real-image detection tab (YOLO11n + Depth Anything; installs PyTorch, which is large). |
+| `--port 8000` | Use another port. If 7860 is busy, the next free port is picked automatically. |
+| `--share` | Create a temporary public link, for example to open the demo on a phone. |
+| `--recreate` | Delete and rebuild `.venv/` if something went wrong. |
+
+Example: `run_demo.bat --check` (Windows) or `./run_demo.sh --check` (macOS/Linux).
+
+<details><summary>Troubleshooting</summary>
+
+* **"Python 3.10 or newer was not found"**: install Python 3.12 from python.org. On Windows, tick *Add python.exe to PATH* in the installer, then open a **new** cmd window.
+* **macOS says Python is 3.9**: that's Apple's built-in Python. Install 3.12 from python.org or run `brew install python@3.12`.
+* **Ubuntu/Debian: "Could not create the virtual environment"**: run `sudo apt install python3-venv` (or `python3.12-venv`) and try again.
+* **`./run_demo.sh: Permission denied`**: run `bash run_demo.sh` instead.
+* **Installing packages failed**: check the internet connection, then run again with `--recreate`.
+* **Manual install** (if you prefer): `python -m venv .venv`, activate it, `pip install -r requirements.txt`, `python app.py`.
+
+</details>
 
 ### What you can do in the demo
 

@@ -1,0 +1,4 @@
+# Keep the launchers runnable after cloning on any OS
+*.sh  text eol=lf
+*.bat text eol=crlf
+*.py  text eol=lf

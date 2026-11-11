@@ -378,8 +378,10 @@ def build_ui():
                 "Runs our **fine-tuned YOLO11n** (person / forklift / "
                 "package, `weights/yolo/best.pt`) on a photo, plus "
                 "**Depth Anything V2-Small** relative depth, driving-corridor "
-                "fusion and the unknown-obstacle check. Needs "
-                "`pip install -r requirements-perception.txt`. Depth "
+                "fusion and the unknown-obstacle check. Needs the extra "
+                "packages: start the demo with `run_demo.bat --full` / "
+                "`./run_demo.sh --full` (or `pip install -r "
+                "requirements-perception.txt`). Depth "
                 "Anything downloads from Hugging Face the first time; "
                 "without internet the tab falls back to detector-only.")
             with gr.Row():
@@ -398,6 +400,20 @@ def build_ui():
     return demo
 
 
+def free_port(host, preferred, tries=20):
+    """Return `preferred` if it is free, otherwise the next free port."""
+    import socket
+    for port in range(preferred, preferred + tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((host, port))
+                return port
+            except OSError:
+                continue
+    raise OSError(f"No free port between {preferred} and "
+                  f"{preferred + tries - 1}; pass --port")
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -405,11 +421,18 @@ def main():
     ap.add_argument("--share", action="store_true",
                     help="create a temporary public gradio.live link")
     ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--no-browser", action="store_true",
+                    help="do not open a browser tab automatically")
     args = ap.parse_args()
+    port = free_port(args.host, args.port)
+    if port != args.port:
+        print(f"Port {args.port} is busy, using {port} instead.")
+    print(f"Open http://127.0.0.1:{port} in your browser "
+          f"(press Ctrl+C here to stop the demo).")
     demo = build_ui()
     demo.queue(default_concurrency_limit=8)
-    demo.launch(server_name=args.host, server_port=args.port,
-                share=args.share, inbrowser=True)
+    demo.launch(server_name=args.host, server_port=port,
+                share=args.share, inbrowser=not args.no_browser)
 
 
 if __name__ == "__main__":
