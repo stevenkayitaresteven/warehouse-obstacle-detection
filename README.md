@@ -74,6 +74,48 @@ device, run `python app.py --share`, which creates a temporary public link.
 
 Backup GIFs for the presentation are in [`results/demo/`](results/demo/).
 
+## 🔍 Image recognition: YOLO11n fine-tuned on warehouse obstacles
+
+We built a **3-class warehouse obstacle dataset** and fine-tuned the COCO-pretrained YOLO11n on it (25 epochs, 416 px, CPU, about 1.2 h).
+
+| Class | Source | Train / val / test objects |
+|---|---|---|
+| person | Ultralytics *construction-ppe* (workers in PPE on industrial sites) | 1962 / 240 / 241 |
+| forklift | Ultralytics *construction-ppe* | 275 / 37 / 36 |
+| package | Ultralytics *package-seg* (parcels; polygons converted to boxes) | 3100 / 693 / 325 |
+
+Images: 1,699 train · 288 val · 189 test. Test images are never used for training.
+
+**Test-set results** (`python -m scripts.eval_yolo --weights weights/yolo/best.pt`):
+
+| Metric | Value |
+|---|---|
+| mAP@50 | **87.7%** |
+| mAP@50-95 | 67.4% |
+| Precision / recall | 88.1% / 84.0% |
+| CPU speed (416 px) | 27 FPS |
+
+| AP@50 per class | COCO-pretrained (before) | Fine-tuned (after) |
+|---|---|---|
+| person | 74.7% | 87.8% |
+| forklift | 0% (no such class) | 81.0% |
+| package | 0% (no such class) | 95.5% |
+
+![test predictions](results/graphs/yolo_test_predictions.jpg)
+
+Plots: [confusion matrix](results/graphs/yolo_confusion_matrix_test.png) · [PR curve](results/graphs/yolo_pr_curve_test.png) · [training curves](results/graphs/yolo_training_curves.png). Weights: `weights/yolo/best.pt` (used by the demo's **📷 Real image detection** tab).
+
+Reproduce:
+
+```bash
+pip install -r requirements-perception.txt
+python -m scripts.build_warehouse_dataset --src data_downloads --download --out datasets/processed/warehouse3
+python training/train_yolo.py --data datasets/processed/warehouse3/data.yaml --weights yolo11n.pt --epochs 25 --imgsz 416 --batch 16 --device cpu --output results/yolo_warehouse --name yolo11n_warehouse3
+python -m scripts.eval_yolo --weights weights/yolo/best.pt
+```
+
+*Why not LOCO yet?* LOCO's download server could not be reached from our training machine, so this week we used the public Ultralytics datasets above. `scripts/prepare_loco.py` + `training/train_yolo.py` train on LOCO (pallets, stillages, small load carriers) on Colab; that is next week's plan. Dataset licences: see the Ultralytics dataset pages (construction-ppe, package-seg).
+
 ---
 
 ## 🧠 System design

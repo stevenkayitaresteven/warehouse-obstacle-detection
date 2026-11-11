@@ -17,6 +17,7 @@ const ROOT = path.resolve(__dirname, "..");
 const DATA = JSON.parse(fs.readFileSync(process.argv[2] || path.join(__dirname, "deck_data.json")));
 const OUT = process.argv[3] || path.join(__dirname, "Group3_Weekly_Progress.pptx");
 const SHOT = path.join(__dirname, "demo_screenshot.png");
+const DET = path.join(__dirname, "detections_crop.jpg");
 const APPLY_THEME = process.env.APPLY_THEME_JS;
 
 // ---------------------------------------------------------------------------
@@ -105,6 +106,10 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
 (async () => {
   const ctl = DATA.controllers;
   const full = ctl.ppo_shield;
+  const Y = DATA.yolo || {};
+  const YE = Y.eval || null;
+  const YC = Y.curve || null;
+  const DS = Y.dataset || null;
   const ICON = {
     camera: await icon(fa.FaCamera, HEX.dk1),
     eye: await icon(fa.FaEye, HEX.dk1),
@@ -113,30 +118,35 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     shield: await icon(fa.FaShieldAlt, HEX.dk1),
     check: await icon(fa.FaCheckCircle, HEX.accent2),
     bug: await icon(fa.FaBug, HEX.accent3),
-    route: await icon(fa.FaRoute, HEX.accent2),
+    db: await icon(fa.FaDatabase, HEX.accent6),
     arrow: await icon(fa.FaArrowRight, HEX.accent4),
-    flag: await icon(fa.FaFlagCheckered, HEX.accent1),
   };
+  const map50 = YE ? YE.fine_tuned.mAP50 : null;
 
   // =========================================================================
   // 1. Title
   pres.addSection({ title: "Overview" });
   let s = pres.addSlide({ masterName: "TITLE_DARK", sectionTitle: "Overview" });
-  s.addText("Weekly progress: our robot now drives itself through a warehouse",
+  s.addText("Weekly progress: a warehouse detector and a robot that drives itself",
     { placeholder: "title" });
   s.addText("Group 3 · Camera-Based Obstacle Detection for Autonomous Warehouse Robots",
     { placeholder: "body" });
-  if (fs.existsSync(SHOT)) {
-    s.addImage({ path: SHOT, x: 6.05, y: 0.55, w: 3.5, h: 3.5 * 0.664,
-      sizing: { type: "cover", w: 3.5, h: 3.5 * 0.664 }, objectName: "Demo screenshot",
-      altText: "Simulated warehouse: robot, racks, workers and camera rays" });
-    s.addText("Live demo: python app.py", { x: 6.05, y: 2.95, w: 3.5, h: 0.3,
+  if (fs.existsSync(DET)) {
+    s.addImage({ path: DET, x: 6.05, y: 0.55, w: 3.5, h: 3.5 * 512 / 1344, objectName: "Test detections",
+      altText: "Fine-tuned YOLO11n detecting workers and forklifts on unseen test images" });
+    s.addText("Fine-tuned YOLO11n on unseen test images", { x: 6.05, y: 1.95, w: 3.5, h: 0.3,
       fontSize: 11, color: C.background2, italic: true, margin: 0, isTextBox: true });
   }
+  if (fs.existsSync(SHOT)) {
+    s.addImage({ path: SHOT, x: 6.05, y: 2.35, w: 1.6, h: 1.6 * 0.664, objectName: "Demo screenshot",
+      altText: "Simulated warehouse with the robot" });
+    s.addText("Simulated robot: python app.py", { x: 7.75, y: 2.6, w: 1.8, h: 0.6,
+      fontSize: 11, color: C.background2, italic: true, margin: 0, valign: "top", isTextBox: true });
+  }
   const stats = [
-    [pct(full.success_rate), "of test runs reach the goal (PPO + shield)", C.accent1],
+    [pct(map50), "mAP@50 of our fine-tuned YOLO11n on the test images", C.accent1],
+    [pct(full.success_rate), "of robot test runs reach the goal (PPO + shield)", C.accent5],
     [pct(full.collision_rate), "collisions with the safety shield on", C.accent2],
-    [pct1(DATA.recall.full), "of obstacles found by detector + depth", C.accent5],
   ];
   stats.forEach(([v, l, col], i) => {
     const x = 0.5 + i * 3.05;
@@ -146,25 +156,23 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
       margin: 0, valign: "top", isTextBox: true });
   });
   s.addNotes(
-    "This week we moved from perception-only work to a robot that drives itself. " +
-    `We built a simulated warehouse, trained a PPO reinforcement-learning policy for ${DATA.total_steps_m} million steps, ` +
-    "and added the safety shield. The three numbers come from " + DATA.episodes +
-    " test episodes on warehouse layouts the robot never saw during training. All navigation " +
-    "results are from simulation, not a physical robot.");
+    "This week we did two things. First, image recognition: we fine-tuned YOLO11n on a warehouse obstacle dataset " +
+    "with people, forklifts and packages, and measured it on test images it never saw. Second, robotics: we trained a " +
+    "reinforcement-learning robot that uses the detector's output to drive through a simulated warehouse, with a " +
+    "safety shield. Navigation numbers are from simulation, not a physical robot.");
 
   // =========================================================================
   // 2. What we built
   pres.addSection({ title: "What we built" });
   s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "What we built" });
   s.addText("What we built this week", { placeholder: "title" });
-  s.addText("All four layers of our design now run end to end in a simulated warehouse",
-    { placeholder: "body" });
+  s.addText("Detector fine-tuned on real images; robot trained in a simulated warehouse", { placeholder: "body" });
   const stages = [
-    ["Camera", "120° view, 6 m range", ICON.camera, C.accent5, "Existing"],
-    ["Detector + depth", "person, pallet, forklift + any surface", ICON.eye, C.accent5, "Existing"],
-    ["Fusion", "unknown obstacles, uncertainty, tracking", ICON.layer, C.accent6, "New logic"],
-    ["PPO policy", "GO · SLOW · STOP · LEFT · RIGHT", ICON.brain, C.accent6, "New logic"],
-    ["Safety shield", "hard stop · person · uncertainty", ICON.shield, C.accent6, "New logic"],
+    ["Camera", "single RGB camera, 120° view", ICON.camera, C.accent5],
+    ["YOLO11n + depth", "fine-tuned detector + Depth Anything V2", ICON.eye, C.accent5],
+    ["Fusion", "unknown obstacles, uncertainty, tracking", ICON.layer, C.accent6],
+    ["PPO policy", "GO · SLOW · STOP · LEFT · RIGHT", ICON.brain, C.accent6],
+    ["Safety shield", "hard stop · person · uncertainty", ICON.shield, C.accent6],
   ];
   const bw = 1.6, gap = 0.25, y0 = 1.4;
   stages.forEach(([t, d, ic, col], i) => {
@@ -179,18 +187,17 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
       s.addImage({ data: ICON.arrow, x: x + bw + 0.04, y: y0 + 0.68, w: 0.17, h: 0.17 });
     }
   });
-  // legend
-  [["Existing components we reuse", C.accent5], ["New logic we added", C.accent6]].forEach(([t, col], i) => {
-    const x = 0.5 + i * 3.0;
+  [["Existing models we fine-tune / reuse", C.accent5], ["New logic we added", C.accent6]].forEach(([t, col], i) => {
+    const x = 0.5 + i * 3.4;
     s.addShape(pres.shapes.OVAL, { x, y: 3.1, w: 0.16, h: 0.16, fill: { color: col }, line: { color: col } });
-    s.addText(t, { x: x + 0.24, y: 3.04, w: 2.6, h: 0.28, fontSize: 11, color: C.text2, margin: 0, isTextBox: true });
+    s.addText(t, { x: x + 0.24, y: 3.04, w: 3.0, h: 0.28, fontSize: 11, color: C.text2, margin: 0, isTextBox: true });
   });
-  // done list
+  const nTrain = DS ? DS.images.train : 0;
   const done = [
-    "Warehouse simulator (Gymnasium): racks, workers, forklifts, pallets, fallen boxes",
-    `PPO trained ${DATA.total_steps_m} M steps with domain randomisation (layouts, obstacles, sensor noise)`,
-    "Safety shield with decision log + event-triggered path replanning",
-    "Interactive Gradio demo: click to drop obstacles, switch perception modes",
+    `Built a 3-class warehouse obstacle dataset (person, forklift, package) and fine-tuned YOLO11n on ${nTrain.toLocaleString()} images`,
+    `Warehouse simulator + PPO robot trained ${DATA.total_steps_m} M steps with domain randomisation`,
+    "Safety shield with decision log + path replanning around seen obstacles",
+    "Interactive Gradio demo: click to drop obstacles, upload photos for detection",
   ];
   done.forEach((t, i) => {
     const col = i % 2, row = Math.floor(i / 2);
@@ -200,53 +207,119 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
       valign: "top", margin: 0, isTextBox: true });
   });
   s.addNotes(
-    "Blue boxes are components we reuse, orange boxes are our new logic, the same colour code as our design document. " +
-    "In the simulator, the detector branch labels known classes and can miss them, the depth branch sees any surface " +
-    "but has noise, shadow false alarms and fails on shiny stretch wrap, exactly the weaknesses we listed. " +
-    "The policy never sees pixels, only the obstacle map, which is our sim-to-real argument.");
+    "Blue boxes are existing models we fine-tune or reuse; orange boxes are our new logic, the same colour code as our design document. " +
+    "The detector is trained on real images. The robot's policy never sees pixels, only the obstacle map built from detections and depth, " +
+    "which is our sim-to-real argument.");
 
   // =========================================================================
-  // 3. Training curve
-  pres.addSection({ title: "Results" });
-  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
-  s.addText("The PPO policy learned to reach the goal", { placeholder: "title" });
-  s.addText("Mean episode reward during training (higher = faster, safer trips)", { placeholder: "body" });
-  const cv = DATA.curve;
-  s.addChart(pres.charts.LINE, [{ name: "Mean episode reward", labels: cv.steps_m.map(String), values: cv.reward }], {
-    x: 0.4, y: 1.3, w: 5.9, h: 3.85, ...AXIS,
-    chartColors: [HEX.accent6], lineSize: 2.5, lineDataSymbol: "none", showLegend: false,
-    showTitle: false, catAxisTitle: "Training steps (millions)", showCatAxisTitle: true,
-    catAxisTitleFontSize: 11, catAxisTitleColor: HEX.dk2, catAxisTitleFontFace: "+mn-lt",
-    valAxisTitle: "Reward", showValAxisTitle: true, valAxisTitleFontSize: 11,
-    valAxisTitleColor: HEX.dk2, valAxisTitleFontFace: "+mn-lt",
-    catAxisLabelFrequency: Math.max(1, Math.round(cv.steps_m.length / 8)), catAxisLabelRotate: 0,
-    objectName: "Training curve",
-  });
-  const iP2 = Math.max(0, cv.steps_m.findIndex((x) => x > 0.6) - 1);
-  const r0 = cv.reward[iP2], r1 = cv.reward[cv.reward.length - 1];
-  const notes3 = [
-    [ICON.route, "Phase 1 (0–0.6 M)", "Learned to stop safely, but got stuck behind pallets on its path"],
-    [ICON.flag, `Phase 2 (0.6–${DATA.total_steps_m} M)`, "Replans around obstacles it sees; goal reached in " + pct(DATA.controllers.ppo_shield.success_rate) + " of test runs"],
-    [ICON.bug, "Bug found and fixed", "Robot 'farmed' reward by driving in circles; we fixed the reward"],
-  ];
-  notes3.forEach(([ic, h, t], i) => {
-    const y = 1.35 + i * 1.27;
-    card(s, 6.55, y, 2.95, 1.12, `Training note ${i + 1}`);
-    s.addImage({ data: ic, x: 6.7, y: y + 0.15, w: 0.3, h: 0.3 });
-    s.addText(h, { x: 7.1, y: y + 0.1, w: 2.3, h: 0.38, fontSize: 13, bold: true, color: C.text1, margin: 0, isTextBox: true });
-    s.addText(t, { x: 6.7, y: y + 0.5, w: 2.7, h: 0.58, fontSize: 11, color: C.text2, valign: "top", margin: 0, isTextBox: true });
-  });
+  // 3. Dataset + fine-tuning curve
+  pres.addSection({ title: "Image recognition" });
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Image recognition" });
+  s.addText("Fine-tuning YOLO11n on warehouse obstacles", { placeholder: "title" });
+  s.addText("Dataset: workers and forklifts on industrial sites + parcels; split into train / val / test", { placeholder: "body" });
+  if (DS) {
+    const cls = ["person", "forklift", "package"];
+    s.addChart(pres.charts.BAR, ["train", "val", "test"].map((sp) => ({
+      name: sp, labels: cls, values: cls.map((c) => DS.instances[sp][c]) })), {
+      x: 0.4, y: 1.3, w: 4.2, h: 2.6, barDir: "col", barGrouping: "clustered", barGapWidthPct: 50,
+      ...AXIS, chartColors: [HEX.accent6, HEX.accent5, HEX.accent4], showValue: true,
+      dataLabelPosition: "outEnd", showLegend: true, legendPos: "t",
+      showTitle: true, title: "Labelled objects per class", objectName: "Dataset chart",
+    });
+    const im = DS.images;
+    s.addText([
+      { text: `${im.train.toLocaleString()} train · ${im.val} val · ${im.test} test images`, options: { bold: true, breakLine: true } },
+      { text: "Test images are never used for training", options: {} },
+    ], { x: 0.55, y: 4.0, w: 4.0, h: 0.6, fontSize: 12, color: C.text1, valign: "top", margin: 0, isTextBox: true });
+    s.addText("Sources: Ultralytics construction-ppe (person, forklift) and package-seg (parcels). LOCO is next.",
+      { x: 0.55, y: 4.62, w: 4.0, h: 0.55, fontSize: 10, color: C.accent4, valign: "top", margin: 0, isTextBox: true });
+  }
+  if (YC) {
+    s.addChart(pres.charts.LINE, [
+      { name: "mAP@50", labels: YC.epoch.map(String), values: YC.map50 },
+      { name: "mAP@50-95", labels: YC.epoch.map(String), values: YC.map50_95 },
+    ], {
+      x: 4.85, y: 1.3, w: 4.75, h: 3.85, ...AXIS, chartColors: [HEX.accent6, HEX.accent4],
+      lineSize: 2.5, lineDataSymbol: "none", showLegend: true, legendPos: "t",
+      showTitle: true, title: "Validation accuracy per training epoch",
+      valAxisMinVal: 0, valAxisMaxVal: 1, valAxisLabelFormatCode: "0.0",
+      catAxisTitle: "Epoch", showCatAxisTitle: true, catAxisTitleFontSize: 11,
+      catAxisTitleColor: HEX.dk2, catAxisTitleFontFace: "+mn-lt", objectName: "YOLO curve",
+    });
+  }
   s.addNotes(
-    "The reward goes up as the robot learns. In phase 1 it learned that stopping is safe, but it stayed stuck when a pallet " +
-    "was on its planned path. We added event-triggered replanning, which is what real warehouse robots do with their costmap. " +
-    "We also found reward hacking: the robot drove in circles to collect progress reward when the path changed. We now measure " +
-    "progress on the fixed map distance and retrained from the phase-1 checkpoint. Training takes about 30 minutes on 4 CPU cores.");
+    "We fine-tuned the COCO-pretrained YOLO11n, 2.6 million parameters, at 416 pixels on a CPU. The left chart shows how many " +
+    "labelled objects each class has; forklifts are the rarest, as in LOCO. The right chart is validation mAP after every epoch: " +
+    "it climbs quickly because we start from pretrained weights, which is the benefit of fine-tuning. Our planned LOCO training " +
+    "on Colab with pallets and stillages is the next step.");
 
   // =========================================================================
-  // 4. Navigation comparison
-  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
+  // 4. Detection results: confusion matrix + before/after
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Image recognition" });
+  s.addText("Fine-tuning taught the detector new classes", { placeholder: "title" });
+  s.addText(`Test set: ${YE ? YE.test_images : "-"} unseen images`, { placeholder: "body" });
+  if (YE) {
+    const lab = YE.confusion_matrix.labels;            // [person, forklift, package, background]
+    const M = YE.confusion_matrix.matrix_pred_rows_true_cols;  // rows = predicted, cols = true
+    const n = lab.length;
+    const colTot = Array.from({ length: n }, (_, j) => M.reduce((a, r) => a + r[j], 0) || 1);
+    const head = ["Predicted ↓ / True →", ...lab.map((l) => l === "background" ? "false alarm (count)" : l)];
+    const rows = [head.map((h) => ({ text: h, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk1 }, fontSize: 10, align: "center" } }))];
+    for (let i = 0; i < n; i++) {
+      const name = lab[i] === "background" ? "missed" : lab[i];
+      const cells = [{ text: name, options: { bold: true, fontSize: 10, color: HEX.dk1, fill: { color: HEX.lt2 } } }];
+      for (let j = 0; j < n; j++) {
+        const isBgBg = i === n - 1 && j === n - 1;
+        const p = M[i][j] / colTot[j];
+        const diag = i === j && !isBgBg;
+        const fill = isBgBg ? "FFFFFF" : p < 0.005 ? "FFFFFF" : diag ? (p > 0.6 ? "8FD3C9" : "CBECE7") : (i === n - 1 ? "F6D5DA" : "FBE3C4");
+        const txt = isBgBg ? "" : (j === n - 1 ? String(M[i][j]) : (p < 0.005 ? "·" : `${Math.round(100 * p)}%`));
+        cells.push({ text: txt, options: { fontSize: 11, align: "center", color: HEX.dk1, fill: { color: fill }, bold: diag } });
+      }
+      rows.push(cells);
+    }
+    s.addText("Confusion matrix (share of each true class)", { x: 0.5, y: 1.3, w: 4.6, h: 0.3, fontSize: 13, bold: true, color: C.text1, margin: 0, isTextBox: true });
+    s.addTable(rows, { x: 0.5, y: 1.65, w: 4.6, colW: [1.15, 0.8, 0.8, 0.8, 1.05], rowH: 0.36,
+      border: { type: "solid", color: "D9DEE2", pt: 0.75 }, fontFace: THEME.bodyFontFace, objectName: "YOLO confusion matrix" });
+    s.addText("Columns = true class. Diagonal = detected correctly. Last row = objects missed. Last column = false alarms on background (count).",
+      { x: 0.5, y: 3.55, w: 4.6, h: 0.45, fontSize: 10, color: C.accent4, valign: "top", margin: 0, isTextBox: true });
+    const bva = YE.before_vs_after_AP50;
+    const cls = ["person", "forklift", "package"];
+    s.addChart(pres.charts.BAR, [
+      { name: "Before (COCO-pretrained)", labels: cls, values: cls.map((c) => Math.round(100 * (bva[c].coco_pretrained || 0))) },
+      { name: "After fine-tuning", labels: cls, values: cls.map((c) => Math.round(100 * (bva[c].fine_tuned || 0))) },
+    ], {
+      x: 5.3, y: 1.3, w: 4.3, h: 2.75, barDir: "col", barGrouping: "clustered", barGapWidthPct: 50,
+      ...AXIS, chartColors: ["B8C2CA", HEX.accent2], showValue: true, dataLabelPosition: "outEnd",
+      dataLabelFormatCode: '0"%"', valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFormatCode: '0"%"',
+      showLegend: true, legendPos: "t", showTitle: true, title: "AP@50 per class on the test set",
+      objectName: "Before after chart",
+    });
+    const ft = YE.fine_tuned;
+    const sm = [
+      [pct(ft.mAP50), "mAP@50"], [pct(ft.mAP50_95), "mAP@50-95"],
+      [pct(ft.precision), "precision"], [pct(ft.recall), "recall"],
+      [Math.round(YE.cpu_fps_imgsz416) + " FPS", "on a laptop CPU"],
+    ];
+    sm.forEach(([v, l], i) => {
+      const x = 0.5 + i * 1.83;
+      card(s, x, 4.2, 1.7, 0.95, `Metric ${l}`);
+      s.addText(v, { x: x + 0.1, y: 4.25, w: 1.5, h: 0.5, fontSize: 22, bold: true, color: C.accent6, margin: 0, isTextBox: true });
+      s.addText(l, { x: x + 0.1, y: 4.74, w: 1.5, h: 0.35, fontSize: 11, color: C.text2, margin: 0, isTextBox: true });
+    });
+  }
+  s.addNotes(
+    "Left: the confusion matrix on the test images. Each column is a true class; the diagonal shows how often it was detected with the " +
+    "right label; 'missed' means the object was not found. The last row counts false alarms on background. " +
+    "Right: before fine-tuning, the COCO model can find people, but it has no forklift or package class at all, so it scores zero there. " +
+    "After fine-tuning it detects all three classes. These are measured results on images the model never saw. Our earlier LOCO baseline was mAP@50 31.7%.");
+
+  // =========================================================================
+  // 5. Navigation
+  pres.addSection({ title: "Robot navigation" });
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Robot navigation" });
   s.addText("RL + safety shield beats the rule-based baseline", { placeholder: "title" });
-  s.addText(`${DATA.episodes} test runs per controller on unseen warehouse layouts (simulation)`, { placeholder: "body" });
+  s.addText(`Simulated warehouse, ${DATA.episodes} test runs per controller on unseen layouts`, { placeholder: "body" });
   const order = [["ppo_shield", "PPO + shield"], ["ppo", "PPO only"], ["rule", "Rule-based"], ["rule_shield", "Rule + shield"]];
   const labels = order.map((o) => o[1]);
   s.addChart(pres.charts.BAR, [
@@ -259,121 +332,65 @@ function card(slide, x, y, w, h, name, fill = C.background2) {
     dataLabelPosition: "outEnd", dataLabelFormatCode: '0"%"', valAxisMaxVal: 100, valAxisMinVal: 0,
     valAxisLabelFormatCode: '0"%"', showLegend: true, legendPos: "b", objectName: "Controller comparison",
   });
-  const t = (k) => ctl[k].mean_time_to_goal_s;
   const side = [
     [pct(ctl.ppo_shield.collision_rate), "collisions with PPO + shield", C.accent2],
     [pct(ctl.ppo.collision_rate), "collisions with PPO alone: the shield is needed", C.accent3],
-    [t("ppo_shield") ? t("ppo_shield").toFixed(0) + " s" : "-", "average time to goal (PPO + shield)", C.accent6],
+    [`${DATA.total_steps_m} M`, "PPO training steps; bug found: robot drove in circles to farm reward", C.accent6],
   ];
   side.forEach(([v, l, col], i) => {
     const y = 1.35 + i * 1.27;
     card(s, 6.75, y, 2.75, 1.12, `Result ${i + 1}`);
-    s.addText(v, { x: 6.9, y: y + 0.08, w: 2.5, h: 0.6, fontSize: 30, bold: true, color: col, margin: 0, isTextBox: true });
-    s.addText(l, { x: 6.9, y: y + 0.66, w: 2.5, h: 0.42, fontSize: 11, color: C.text2, valign: "top", margin: 0, isTextBox: true });
+    s.addText(v, { x: 6.9, y: y + 0.08, w: 2.5, h: 0.55, fontSize: 28, bold: true, color: col, margin: 0, isTextBox: true });
+    s.addText(l, { x: 6.9, y: y + 0.62, w: 2.5, h: 0.46, fontSize: 11, color: C.text2, valign: "top", margin: 0, isTextBox: true });
   });
   s.addNotes(
-    "Green is reaching the goal, red is a collision, grey is running out of time. The rule-based baseline is our " +
-    "'stop if closer than 1 m' controller. PPO alone is faster but still collides sometimes; with the safety shield on top " +
-    "it never collided in the test runs. Remaining failures are time-outs, where the robot waits or hesitates, which is the safe failure mode.");
+    "The robot learns with PPO in a simulated warehouse: reward for progress and reaching the goal, penalties for collisions, near-misses and harsh braking. " +
+    "Green is reaching the goal, red is a collision, grey is running out of time. The rule-based baseline is 'stop if closer than 1 m'. " +
+    "PPO alone still collides sometimes; with the shield it never collided. During training we found reward hacking: the robot drove in " +
+    "circles to collect progress reward when its path was replanned; we fixed the reward and retrained.");
 
   // =========================================================================
-  // 5. Confusion matrix + ablation
-  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Results" });
-  s.addText("Depth fusion finds what the detector misses", { placeholder: "title" });
-  s.addText("Confusion matrix: true obstacle (rows) vs what our perception reported (columns), % of frames", { placeholder: "body" });
-  const cmTable = (cm, x, y, w, heading, objName) => {
-    const m = cm.matrix;
-    const head = ["True \\ Predicted", "person", "pallet", "forklift", "unknown", "missed"];
-    const rows = [head.map((h) => ({ text: h, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk1 }, fontSize: 9, align: "center" } }))];
-    m.forEach((row, i) => {
-      const tot = row.reduce((a, b) => a + b, 0) || 1;
-      const cells = [{ text: cm.rows_true[i] === "unknown box" ? "fallen box" : cm.rows_true[i], options: { bold: true, fontSize: 10, color: HEX.dk1, fill: { color: HEX.lt2 } } }];
-      row.forEach((v, j) => {
-        const p = v / tot;
-        const good = j === i || (i === 3 && j === 3);
-        const fill = p < 0.005 ? "FFFFFF" : (j === 4 ? (p > 0.5 ? "E6A1AB" : "F6D5DA")
-          : (good ? (p > 0.75 ? "8FD3C9" : "CBECE7") : "FBE3C4"));
-        cells.push({ text: p < 0.005 ? "·" : `${Math.round(100 * p)}%`,
-          options: { fontSize: 11, align: "center", color: HEX.dk1, fill: { color: fill }, bold: p > 0.5 } });
-      });
-      rows.push(cells);
-    });
-    s.addText(heading, { x, y, w, h: 0.3, fontSize: 13, bold: true, color: C.text1, margin: 0, isTextBox: true });
-    s.addTable(rows, { x, y: y + 0.32, w, colW: [0.96, 0.58, 0.58, 0.64, 0.78, 0.62],
-      rowH: 0.3, border: { type: "solid", color: "D9DEE2", pt: 0.75 }, fontFace: THEME.bodyFontFace,
-      objectName: objName });
-  };
-  cmTable(DATA.confusion_detector_only, 0.5, 1.3, 4.16, "Detector only (existing method)", "Confusion detector only");
-  cmTable(DATA.confusion_full, 5.0, 1.3, 4.16, "Our fusion (detector + depth)", "Confusion full");
+  // 6. Fusion + safety + next steps
+  pres.addSection({ title: "Next steps" });
+  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Next steps" });
+  s.addText("Depth fusion catches what the detector misses", { placeholder: "title" });
+  s.addText("Ablation in simulation: PPO + shield with more of our new logic switched on", { placeholder: "body" });
   const ab = DATA.ablation;
   const abOrder = [["detector_only", "Detector only"], ["fusion", "+ depth fusion"], ["fusion_uncertainty", "+ uncertainty"], ["full", "+ tracking (full)"]];
   s.addChart(pres.charts.BAR, [{ name: "Collision rate", labels: abOrder.map((a) => a[1]),
     values: abOrder.map((a) => Math.round(100 * ab[a[0]].collision_rate)) }], {
-    x: 0.4, y: 3.25, w: 5.3, h: 1.95, barDir: "bar", ...AXIS, chartColors: [HEX.accent3],
+    x: 0.4, y: 1.3, w: 5.0, h: 2.3, barDir: "bar", ...AXIS, chartColors: [HEX.accent3],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0"%"', valAxisHidden: true,
-    valGridLine: { style: "none" }, showLegend: false, showTitle: true, title: "Collision rate, PPO + shield (ablation)",
+    valGridLine: { style: "none" }, showLegend: false, showTitle: true, title: "Collision rate",
     catAxisOrientation: "maxMin", objectName: "Ablation chart",
   });
-  card(s, 6.0, 3.4, 3.5, 1.7, "Recall card");
-  s.addText(pct1(DATA.recall.full), { x: 6.15, y: 3.48, w: 1.6, h: 0.6, fontSize: 28, bold: true, color: C.accent2, margin: 0, isTextBox: true });
-  s.addText(pct1(DATA.recall.detector_only), { x: 7.8, y: 3.48, w: 1.6, h: 0.6, fontSize: 28, bold: true, color: C.accent3, margin: 0, isTextBox: true });
-  s.addText("obstacle recall, fusion", { x: 6.15, y: 4.05, w: 1.6, h: 0.45, fontSize: 11, color: C.text2, valign: "top", margin: 0, isTextBox: true });
-  s.addText("detector only", { x: 7.8, y: 4.05, w: 1.6, h: 0.45, fontSize: 11, color: C.text2, valign: "top", margin: 0, isTextBox: true });
-  s.addText(`Unknown fallen boxes: ${pct(DATA.recall.unknown_detector_only)} → ${pct(DATA.recall.unknown_full)} found`,
-    { x: 6.15, y: 4.55, w: 3.25, h: 0.45, fontSize: 12, bold: true, color: C.text1, valign: "top", margin: 0, isTextBox: true });
-  s.addNotes(
-    "Each row is a true obstacle type, each column is what our perception said, counted per frame in simulation. " +
-    "The detector alone never reports the fallen boxes because they are not a trained class, so 100% of them are missed, " +
-    "and it misses about 10% of people and pallets. With depth fusion, almost nothing is missed: a person the detector missed " +
-    "still appears as an 'unknown obstacle', so the robot still avoids it. The bar chart is our ablation study: " +
-    "with detector only, the robot crashes into what it cannot see. Note: the detector here is simulated with 80-97% recall; " +
-    "our real YOLO11n baseline on LOCO is mAP@50 31.7%, which we are still improving.");
-
-  // =========================================================================
-  // 6. Uncertainty + safety + next steps
-  pres.addSection({ title: "Next steps" });
-  s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Next steps" });
-  s.addText("Shiny wrap raises uncertainty, so the robot slows", { placeholder: "title" });
-  s.addText("Uncertainty score when a pallet is within 3 m in front of the robot (share of frames)", { placeholder: "body" });
   const U = DATA.uncertainty;
-  const bins = ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9"];
-  const norm = (h) => { const tot = h.reduce((a, b) => a + b, 0) || 1; return h.map((v) => Math.round(100 * v / tot)); };
-  s.addChart(pres.charts.BAR, [
-    { name: "Normal pallets", labels: bins, values: norm(U["normal pallets"].hist) },
-    { name: "Stretch-wrapped (reflective)", labels: bins, values: norm(U["reflective pallets"].hist) },
-  ], {
-    x: 0.4, y: 1.3, w: 5.0, h: 2.75, barDir: "col", barGrouping: "clustered", barGapWidthPct: 40,
-    ...AXIS, chartColors: [HEX.accent5, HEX.accent1], showLegend: true, legendPos: "t",
-    valAxisLabelFormatCode: '0"%"', catAxisTitle: "Uncertainty score (≥ 0.35 → slow down)",
-    showCatAxisTitle: true, catAxisTitleFontSize: 11, catAxisTitleColor: HEX.dk2, catAxisTitleFontFace: "+mn-lt",
-    objectName: "Uncertainty histogram",
-  });
-  const sm = [
-    [pct(U["normal pallets"].slow_rate) + " → " + pct(U["reflective pallets"].slow_rate), "slow-down triggered: normal → shiny pallets"],
+  const sm6 = [
+    [`${pct(DATA.recall.unknown_detector_only)} → ${pct(DATA.recall.unknown_full)}`, "unknown fallen boxes found (detector → fusion)"],
+    [`${pct(U["normal pallets"].slow_rate)} → ${pct(U["reflective pallets"].slow_rate)}`, "slow-down rate: normal → shiny wrapped pallets"],
     [pct(DATA.shield_step_out), "worker-steps-out tests where the shield stopped in time"],
-    [DATA.speed.policy_plus_shield_ms.toFixed(2) + " ms", "policy + shield decision time per frame on a CPU"],
   ];
-  sm.forEach(([v, l], i) => {
-    const x = 0.5 + i * 1.65;
-    s.addText(v, { x, y: 4.15, w: 1.6, h: 0.45, fontSize: 18, bold: true, color: C.accent6, margin: 0, isTextBox: true });
-    s.addText(l, { x, y: 4.58, w: 1.55, h: 0.62, fontSize: 10, color: C.text2, valign: "top", margin: 0, isTextBox: true });
+  sm6.forEach(([v, l], i) => {
+    const x = 0.5 + i * 1.67;
+    s.addText(v, { x, y: 3.8, w: 1.6, h: 0.45, fontSize: 18, bold: true, color: C.accent6, margin: 0, isTextBox: true });
+    s.addText(l, { x, y: 4.26, w: 1.55, h: 0.8, fontSize: 10, color: C.text2, valign: "top", margin: 0, isTextBox: true });
   });
   card(s, 5.75, 1.3, 3.75, 3.85, "Next steps card");
   s.addText("Next week", { x: 5.95, y: 1.42, w: 3.4, h: 0.4, fontSize: 18, bold: true, color: C.text1, margin: 0, isTextBox: true });
   const nxt = [
-    "Add the COCO person class and retrain YOLO11n (mAP@50 now 31.7%)",
-    "Run Depth Anything V2 on our hard-case videos and measure distance error",
-    "Train 3 random seeds and report mean ± spread",
-    "Reduce time-outs: train with the shield in the loop",
+    "Fine-tune on LOCO (pallets, stillages) on Colab GPU, 640 px, 100 epochs",
+    "Plug the fine-tuned detector into the robot's perception",
+    "Run Depth Anything V2 on our hard-case videos; measure distance error",
+    "Train 3 random seeds; report mean ± spread",
     "Webcam-on-a-trolley demo with live boxes, depth and actions",
   ];
   s.addText(nxt.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < nxt.length - 1 } })),
     { x: 5.95, y: 1.9, w: 3.4, h: 3.1, fontSize: 12, color: C.text1, paraSpaceAfter: 6, valign: "top", margin: 0, isTextBox: true });
   s.addNotes(
-    "Our uncertainty-aware slowdown: on shiny stretch-wrapped pallets the depth reading jumps between frames and disagrees " +
-    "with the detector box, so the score shifts right and the robot slows down far more often, while normal pallets rarely " +
-    "trigger it. In scripted tests where a worker suddenly steps out about one metre ahead, the shield stopped the robot every time. " +
-    "Next week we connect the real models: YOLO with the person class, Depth Anything on our hard-case footage, and three seeds for robustness.");
+    "This is our ablation study. With the detector alone, the robot crashes into fallen boxes because they are not a trained class. " +
+    "Adding the depth branch finds them, and collisions drop to zero. On shiny stretch-wrapped pallets the uncertainty score rises, so " +
+    "the robot slows down far more often than near normal pallets. In scripted tests where a worker suddenly steps out about one metre ahead, " +
+    "the shield stopped the robot every time. Next week we fine-tune on LOCO and connect the real detector to the robot.");
 
   await pres.writeFile({ fileName: OUT });
   if (APPLY_THEME) {

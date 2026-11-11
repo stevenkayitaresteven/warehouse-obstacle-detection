@@ -1,0 +1,28 @@
+{
+  "images": {
+    "train": 1699,
+    "val": 288,
+    "test": 189
+  },
+  "instances": {
+    "train": {
+      "person": 1962,
+      "forklift": 275,
+      "package": 3100
+    },
+    "val": {
+      "person": 240,
+      "forklift": 37,
+      "package": 693
+    },
+    "test": {
+      "person": 241,
+      "forklift": 36,
+      "package": 325
+    }
+  },
+  "sources": {
+    "person, forklift": "Ultralytics construction-ppe (workers in PPE on industrial sites)",
+    "package": "Ultralytics package-seg (parcels; polygons converted to boxes)"
+  }
+}

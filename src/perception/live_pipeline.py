@@ -149,7 +149,7 @@ def analyse(image, cache):
                     (220, 40, 220), 2)
     depth_col = cv2.applyColorMap((dnorm * 255).astype(np.uint8),
                                   cv2.COLORMAP_INFERNO)[:, :, ::-1]
-    out = np.hstack([vis, depth_col])
+    out = vis if depth_model is None else np.hstack([vis, depth_col])
 
     # Decision preview, same priority order as the safety shield
     close_obj = [o for o in fused if (o["relative_depth"] or 0) > 0.75]
