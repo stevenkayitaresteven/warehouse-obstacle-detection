@@ -1,0 +1,22 @@
+# Keep the image small: only what the demo needs at runtime
+.git
+.github
+.venv
+venv
+**/__pycache__
+*.pyc
+datasets
+runs
+logs
+checkpoints
+notebooks
+presentation
+results/demo
+results/yolo_eval
+results/yolo_warehouse
+weights/yolo/yolo11n.pt
+models/*.zip
+*.gif
+.dockerignore
+Dockerfile
+docker-compose.yml

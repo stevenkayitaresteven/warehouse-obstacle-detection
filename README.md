@@ -16,6 +16,7 @@ rule-based **safety shield** can override it.
 ## 🚀 Run the interactive demo (Windows, macOS, Linux)
 
 [![Demo runs on Windows, macOS and Linux](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/demo-smoke-test.yml/badge.svg)](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/demo-smoke-test.yml)
+[![Docker image](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/docker.yml/badge.svg)](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/docker.yml)
 
 **You only need [Python 3.10 – 3.13](https://www.python.org/downloads/) and an internet connection the first time.**
 No GPU and no PyTorch: the trained robot policy is a small NumPy file. The launcher creates a private environment (`.venv/`), installs everything into it, and opens the demo in your browser. Installing takes 1–3 minutes the first time; later starts take a few seconds.
@@ -58,6 +59,28 @@ The browser opens **http://127.0.0.1:7860**. If it doesn't, paste that address i
 
 Example: `run_demo.bat --check` (Windows) or `./run_demo.sh --check` (macOS/Linux).
 
+### 🐳 With Docker (no Python needed)
+
+If [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS) or Docker Engine (Linux) is installed, the same command works everywhere: Windows cmd/PowerShell, macOS Terminal (Intel and Apple Silicon) and Linux.
+
+```bash
+git clone https://github.com/stevenkayitaresteven/warehouse-obstacle-detection.git
+cd warehouse-obstacle-detection
+docker compose up --build
+```
+
+Then open **http://localhost:7860**. Stop with **Ctrl+C** and clean up with `docker compose down`. The first build takes about 1–3 minutes and makes an image of about 900 MB; later starts take seconds.
+
+| Task | Command |
+|---|---|
+| Start in the background | `docker compose up -d --build` |
+| Check that it works (self-check) | `docker compose run --rm demo python -m src.app.selfcheck` |
+| Use another port, e.g. 8080 | change `"7860:7860"` to `"8080:7860"` in `docker-compose.yml` |
+| With the 📷 real-image detection tab (YOLO11n + Depth Anything, ~2 GB larger) | `docker compose --profile full up --build demo-full` |
+| Without compose | `docker build -t warehouse-robot-demo .` then `docker run --rm -p 7860:7860 warehouse-robot-demo` |
+
+The image is built and tested on every change for amd64 (Intel/AMD PCs) and arm64 (Apple Silicon), including the full variant ([Docker CI](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/docker.yml)).
+
 <details><summary>Troubleshooting</summary>
 
 * **"Python 3.10 or newer was not found"**: install Python 3.12 from python.org. On Windows, tick *Add python.exe to PATH* in the installer, then open a **new** cmd window.
@@ -65,6 +88,8 @@ Example: `run_demo.bat --check` (Windows) or `./run_demo.sh --check` (macOS/Linu
 * **Ubuntu/Debian: "Could not create the virtual environment"**: run `sudo apt install python3-venv` (or `python3.12-venv`) and try again.
 * **`./run_demo.sh: Permission denied`**: run `bash run_demo.sh` instead.
 * **Installing packages failed**: check the internet connection, then run again with `--recreate`.
+* **Docker: "port is already allocated"**: another program uses port 7860. Stop it, or change the left number in `docker-compose.yml` (`"8080:7860"`) and open http://localhost:8080.
+* **Docker on Windows: "cannot connect to the Docker daemon"**: start Docker Desktop first and wait until it says *Engine running*.
 * **Manual install** (if you prefer): `python -m venv .venv`, activate it, `pip install -r requirements.txt`, `python app.py`.
 
 </details>

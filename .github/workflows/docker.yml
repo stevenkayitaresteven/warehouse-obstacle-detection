@@ -1,0 +1,69 @@
+name: Docker image
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  demo-image:
+    name: docker compose up (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest      # Intel/AMD PCs, Windows Docker Desktop
+            arch: amd64
+          - runner: ubuntu-24.04-arm   # Apple Silicon Macs, ARM Linux
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose build
+        run: docker compose build demo
+
+      - name: Self-check inside the container
+        run: docker run --rm warehouse-robot-demo:latest python -m src.app.selfcheck
+
+      - name: docker compose up, wait until healthy, open the page
+        run: |
+          docker compose up -d demo
+          cid=$(docker compose ps -q demo)
+          for i in $(seq 1 60); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' "$cid")
+            [ "$s" = healthy ] && break
+            sleep 2
+          done
+          echo "container health: $s"
+          [ "$s" = healthy ]
+          curl -fsS http://localhost:7860/ -o /dev/null
+          echo "http://localhost:7860 answered"
+
+      - name: Logs and shutdown
+        if: always()
+        run: |
+          docker compose logs demo | tail -20
+          docker compose down
+          docker images warehouse-robot-demo
+
+  full-image:
+    name: docker compose --profile full (YOLO11n + Depth Anything)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose --profile full build
+        run: docker compose --profile full build demo-full
+
+      - name: Detector + depth on an example photo, then app self-check
+        run: >
+          docker run --rm warehouse-robot-demo:full
+          python -m src.app.selfcheck --perception --require-depth
+
+      - name: Image size
+        if: always()
+        run: docker images warehouse-robot-demo
