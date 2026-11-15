@@ -1,0 +1,272 @@
+{
+ "textures": [
+  {
+   "name": "rack_a",
+   "kind": "rack",
+   "style": "a",
+   "image": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "px_per_m": 88,
+   "vp_roi": [
+    520,
+    80,
+    1900,
+    1300
+   ],
+   "family": "neg",
+   "floor_pt": [
+    1150,
+    1240
+   ],
+   "x_left": 1150,
+   "x_right": 1750,
+   "top_y": 105,
+   "near": "left",
+   "width_m": 8.1,
+   "height_m": 6.6
+  },
+  {
+   "name": "rack_a2",
+   "kind": "rack",
+   "style": "a",
+   "image": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "px_per_m": 88,
+   "vp_roi": [
+    520,
+    80,
+    1900,
+    1300
+   ],
+   "family": "pos",
+   "floor_pt": [
+    1150,
+    1240
+   ],
+   "x_left": 640,
+   "x_right": 1150,
+   "top_y": 105,
+   "near": "right",
+   "width_m": 8.1,
+   "height_m": 6.6
+  },
+  {
+   "name": "floor_a",
+   "kind": "floor",
+   "style": "a",
+   "image": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "rect": [
+    385,
+    1010,
+    900,
+    1340
+   ],
+   "size_m": [
+    6.0,
+    5.0
+   ]
+  },
+  {
+   "name": "ceiling_a",
+   "kind": "ceiling",
+   "style": "a",
+   "image": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "rect": [
+    300,
+    0,
+    740,
+    190
+   ],
+   "size_m": [
+    8.0,
+    5.0
+   ],
+   "keep_light": 0.8
+  },
+  {
+   "name": "rack_b",
+   "kind": "rack",
+   "style": "b",
+   "image": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "px_per_m": 88,
+   "vp_roi": [
+    380,
+    30,
+    1600,
+    1260
+   ],
+   "family": "neg",
+   "floor_pt": [
+    905,
+    1245
+   ],
+   "x_left": 905,
+   "x_right": 1455,
+   "top_y": 55,
+   "near": "left",
+   "width_m": 8.1,
+   "height_m": 6.6
+  },
+  {
+   "name": "rack_b_end",
+   "kind": "rack_end",
+   "style": "b",
+   "image": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "px_per_m": 88,
+   "vp_roi": [
+    380,
+    30,
+    1600,
+    1260
+   ],
+   "family": "pos",
+   "floor_pt": [
+    905,
+    1245
+   ],
+   "x_left": 790,
+   "x_right": 905,
+   "top_y": 55,
+   "near": "right",
+   "width_m": 1.1,
+   "height_m": 6.6
+  },
+  {
+   "name": "floor_b",
+   "kind": "floor",
+   "style": "b",
+   "image": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "rect": [
+    85,
+    940,
+    445,
+    1340
+   ],
+   "size_m": [
+    5.0,
+    5.0
+   ]
+  },
+  {
+   "name": "ceiling_b",
+   "kind": "ceiling",
+   "style": "b",
+   "image": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "rect": [
+    1190,
+    0,
+    1800,
+    130
+   ],
+   "size_m": [
+    10.0,
+    5.0
+   ],
+   "keep_light": 0.8
+  },
+  {
+   "name": "rack_c",
+   "kind": "rack",
+   "style": "c",
+   "image": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "px_per_m": 88,
+   "vp_roi": [
+    950,
+    0,
+    2048,
+    1330
+   ],
+   "vp_v": [
+    1076,
+    10984
+   ],
+   "family": "pos",
+   "floor_pt": [
+    1372,
+    665
+   ],
+   "x_left": 1385,
+   "x_right": 1701,
+   "top_y": 5,
+   "near": "right",
+   "width_m": 2.7,
+   "height_m": 6.2
+  },
+  {
+   "name": "floor_c",
+   "kind": "floor",
+   "style": "c",
+   "image": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "rect": [
+    1400,
+    900,
+    1620,
+    1080
+   ],
+   "size_m": [
+    3.0,
+    3.0
+   ]
+  },
+  {
+   "name": "wall_c",
+   "kind": "wall",
+   "style": "c",
+   "image": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "quad": [
+    [
+     35,
+     0
+    ],
+    [
+     500,
+     0
+    ],
+    [
+     500,
+     472
+    ],
+    [
+     35,
+     478
+    ]
+   ],
+   "width_m": 6.4,
+   "height_m": 6.6,
+   "patch": [
+    [
+     205,
+     425,
+     275,
+     480,
+     275,
+     425
+    ]
+   ]
+  },
+  {
+   "name": "wall_b",
+   "kind": "wall",
+   "style": "b",
+   "image": "source-dc39994159adfb8e9c6bdafba4841c4b.jpg",
+   "quad": [
+    [
+     130,
+     110
+    ],
+    [
+     480,
+     110
+    ],
+    [
+     480,
+     600
+    ],
+    [
+     130,
+     600
+    ]
+   ],
+   "width_m": 4.2,
+   "height_m": 5.9
+  }
+ ]
+}

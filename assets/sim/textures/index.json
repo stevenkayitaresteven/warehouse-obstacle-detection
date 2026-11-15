@@ -1,0 +1,263 @@
+{
+ "note": "Rectified from real warehouse photos of the training set. See assets/sim/ATTRIBUTION.md.",
+ "textures": [
+  {
+   "name": "rack_a",
+   "kind": "rack",
+   "style": "a",
+   "file": "rack_a.jpg",
+   "source": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "width_m": 8.1,
+   "height_m": 6.6,
+   "quad": [
+    [
+     1212.6,
+     105.0
+    ],
+    [
+     1848.2,
+     309.0
+    ],
+    [
+     1753.9,
+     787.2
+    ],
+    [
+     1150.0,
+     1240.0
+    ]
+   ],
+   "w": 713,
+   "h": 581
+  },
+  {
+   "name": "rack_a2",
+   "kind": "rack",
+   "style": "a",
+   "file": "rack_a2.jpg",
+   "source": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "width_m": 8.1,
+   "height_m": 6.6,
+   "quad": [
+    [
+     606.5,
+     289.2
+    ],
+    [
+     1212.6,
+     105.0
+    ],
+    [
+     1150.0,
+     1240.0
+    ],
+    [
+     637.5,
+     701.5
+    ]
+   ],
+   "w": 713,
+   "h": 581
+  },
+  {
+   "name": "floor_a",
+   "kind": "floor",
+   "style": "a",
+   "file": "floor_a.jpg",
+   "source": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "width_m": 6.0,
+   "height_m": 5.0,
+   "w": 432,
+   "h": 360
+  },
+  {
+   "name": "ceiling_a",
+   "kind": "ceiling",
+   "style": "a",
+   "file": "ceiling_a.jpg",
+   "source": "source-b1b1595542d8a8121fc095a8223157a2.jpg",
+   "width_m": 8.0,
+   "height_m": 5.0,
+   "w": 576,
+   "h": 360
+  },
+  {
+   "name": "rack_b",
+   "kind": "rack",
+   "style": "b",
+   "file": "rack_b.jpg",
+   "source": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "width_m": 8.1,
+   "height_m": 6.6,
+   "quad": [
+    [
+     882.0,
+     55.0
+    ],
+    [
+     1479.1,
+     257.2
+    ],
+    [
+     1454.7,
+     787.1
+    ],
+    [
+     905.0,
+     1245.0
+    ]
+   ],
+   "w": 713,
+   "h": 581
+  },
+  {
+   "name": "rack_b_end",
+   "kind": "rack_end",
+   "style": "b",
+   "file": "rack_b_end.jpg",
+   "source": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "width_m": 1.1,
+   "height_m": 6.6,
+   "quad": [
+    [
+     753.0,
+     64.4
+    ],
+    [
+     882.0,
+     55.0
+    ],
+    [
+     905.0,
+     1245.0
+    ],
+    [
+     790.0,
+     1177.0
+    ]
+   ],
+   "w": 97,
+   "h": 581
+  },
+  {
+   "name": "floor_b",
+   "kind": "floor",
+   "style": "b",
+   "file": "floor_b.jpg",
+   "source": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "width_m": 5.0,
+   "height_m": 5.0,
+   "w": 360,
+   "h": 360
+  },
+  {
+   "name": "ceiling_b",
+   "kind": "ceiling",
+   "style": "b",
+   "file": "ceiling_b.jpg",
+   "source": "source-d7438871aefee49d413dcede6cd5d626.jpg",
+   "width_m": 10.0,
+   "height_m": 5.0,
+   "w": 720,
+   "h": 360
+  },
+  {
+   "name": "rack_c",
+   "kind": "rack",
+   "style": "c",
+   "file": "rack_c.jpg",
+   "source": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "width_m": 2.7,
+   "height_m": 6.2,
+   "quad": [
+    [
+     1405.5,
+     -8.3
+    ],
+    [
+     1756.3,
+     5.0
+    ],
+    [
+     1701.0,
+     898.0
+    ],
+    [
+     1385.0,
+     672.7
+    ]
+   ],
+   "w": 238,
+   "h": 546
+  },
+  {
+   "name": "floor_c",
+   "kind": "floor",
+   "style": "c",
+   "file": "floor_c.jpg",
+   "source": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "width_m": 3.0,
+   "height_m": 3.0,
+   "w": 216,
+   "h": 216
+  },
+  {
+   "name": "wall_c",
+   "kind": "wall",
+   "style": "c",
+   "file": "wall_c.jpg",
+   "source": "source-6b6114dea7ecbe5997f1f0393824508b.jpg",
+   "width_m": 6.4,
+   "height_m": 6.6,
+   "quad": [
+    [
+     35.0,
+     0.0
+    ],
+    [
+     500.0,
+     0.0
+    ],
+    [
+     500.0,
+     472.0
+    ],
+    [
+     35.0,
+     478.0
+    ]
+   ],
+   "w": 461,
+   "h": 475
+  },
+  {
+   "name": "wall_b",
+   "kind": "wall",
+   "style": "b",
+   "file": "wall_b.jpg",
+   "source": "source-dc39994159adfb8e9c6bdafba4841c4b.jpg",
+   "width_m": 4.2,
+   "height_m": 5.9,
+   "quad": [
+    [
+     130.0,
+     110.0
+    ],
+    [
+     480.0,
+     110.0
+    ],
+    [
+     480.0,
+     600.0
+    ],
+    [
+     130.0,
+     600.0
+    ]
+   ],
+   "w": 302,
+   "h": 425
+  }
+ ]
+}
