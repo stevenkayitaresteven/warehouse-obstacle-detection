@@ -16,7 +16,9 @@ training). Warehouse style "c" was not used for the fine-tuning composites.
 
     python -m scripts.eval_real_image_sim --episodes 40 --frames-episodes 30
 
-Writes results/metrics/real_image_eval.json.
+Writes results/metrics/real_image_eval.json. `--onnx` evaluates another
+detector file, `--out` writes somewhere else and `--no-emulated` skips the
+navigation run without images (handy when comparing detectors).
 """
 
 from __future__ import annotations
@@ -48,7 +50,7 @@ class _Cached:
 
 
 def perception_worker(args):
-    seeds, style = args
+    seeds, style, onnx = args
     from src.evaluation.sim_detection import DetectionMeter
     from src.navigation.controllers import NumpyPolicy
     from src.perception.camera_perception import (
@@ -59,7 +61,7 @@ def perception_worker(args):
     from src.simulation.photo_camera import PhotoCamera
     from src.simulation.warehouse_env import EnvConfig, WarehouseEnv
 
-    det = _Cached(OnnxDetector(threads=1))
+    det = _Cached(OnnxDetector(onnx, threads=1))
     cam = PhotoCamera(splits=("val", "test"), style=style)
     env = WarehouseEnv(EnvConfig())
     variants = {
@@ -111,7 +113,7 @@ def merge(meters):
 
 
 def nav_worker(args):
-    seeds, real = args
+    seeds, real, onnx = args
     from src.navigation.controllers import NumpyPolicy
     from src.perception.camera_perception import attach_real_camera
     from src.perception.onnx_detector import OnnxDetector
@@ -119,7 +121,7 @@ def nav_worker(args):
     from src.simulation.warehouse_env import EnvConfig, WarehouseEnv
     env = WarehouseEnv(EnvConfig())
     if real:
-        attach_real_camera(env, detector=OnnxDetector(threads=1))
+        attach_real_camera(env, detector=OnnxDetector(onnx, threads=1))
     pol, shield = NumpyPolicy(), SafetyShield()
     out = []
     for seed in seeds:
@@ -168,7 +170,13 @@ def main():
     ap.add_argument("--frames-episodes", type=int, default=30)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--seed0", type=int, default=10_000)
+    ap.add_argument("--onnx", default=None, help="detector (default: "
+                    "weights/yolo/best.onnx)")
+    ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--no-emulated", action="store_true")
     a = ap.parse_args()
+    from src.perception.onnx_detector import DEFAULT_ONNX
+    onnx = a.onnx or str(DEFAULT_ONNX)
     t0 = time.time()
     rep = {"note": "Simulation with the real-image camera. Objects are "
                    "val/test cut-outs the detector never saw. Not "
@@ -181,7 +189,8 @@ def main():
         for style in ("a", "b", "c"):
             sub = seeds[{"a": 0, "b": 1, "c": 2}[style]::3]
             res = pool.map(perception_worker,
-                           [(c, style) for c in chunks(sub, a.workers) if c])
+                           [(c, style, onnx) for c in chunks(sub, a.workers)
+                            if c])
             per_style[style] = res
             print(f"style {style}: {time.time() - t0:.0f} s", flush=True)
         for key in ("full", "no_tracking", "no_gates"):
@@ -203,9 +212,11 @@ def main():
         # ---- navigation -------------------------------------------------
         seeds = list(range(a.seed0, a.seed0 + a.episodes))
         rep["navigation"] = {}
-        for name, real in (("real_image_camera", True), ("emulated", False)):
+        runs_cfg = [("real_image_camera", True), ("emulated", False)]
+        for name, real in runs_cfg[:1] if a.no_emulated else runs_cfg:
             res = pool.map(nav_worker,
-                           [(c, real) for c in chunks(seeds, a.workers) if c])
+                           [(c, real, onnx) for c in chunks(seeds, a.workers)
+                            if c])
             runs = sorted([r for part, _ in res for r in part],
                           key=lambda r: r["seed"])
             rep["navigation"][name] = nav_summary(runs)
@@ -219,9 +230,11 @@ def main():
                   f"{100 * s['timeout_rate']:.0f}%  ({time.time() - t0:.0f}"
                   f" s)", flush=True)
     rep["episodes"] = a.episodes
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(rep, indent=1))
-    print("saved", OUT)
+    rep["detector"] = onnx
+    out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(rep, indent=1))
+    print("saved", out)
 
 
 if __name__ == "__main__":
