@@ -31,73 +31,73 @@
   "results": {
    "original": {
     "sim_heldout": {
-     "mAP50": 0.5801,
-     "mAP50_95": 0.4011,
-     "P": 0.7548,
-     "R": 0.4644,
+     "mAP50": 0.58011,
+     "mAP50_95": 0.401108,
+     "P": 0.75478,
+     "R": 0.464405,
      "AP50_per_class": {
-      "person": 0.8455,
-      "forklift": 0.5978,
-      "package": 0.2971
+      "person": 0.845467,
+      "forklift": 0.597801,
+      "package": 0.29706
      }
     },
     "real_test": {
-     "mAP50": 0.8767,
-     "mAP50_95": 0.6742,
-     "P": 0.8806,
-     "R": 0.8396,
+     "mAP50": 0.876743,
+     "mAP50_95": 0.674197,
+     "P": 0.880584,
+     "R": 0.839573,
      "AP50_per_class": {
-      "person": 0.865,
-      "forklift": 0.8102,
-      "package": 0.9551
+      "person": 0.864961,
+      "forklift": 0.810208,
+      "package": 0.955061
      }
     }
    },
    "epoch2": {
     "sim_heldout": {
-     "mAP50": 0.9188,
-     "mAP50_95": 0.642,
-     "P": 0.9489,
-     "R": 0.8219,
+     "mAP50": 0.918798,
+     "mAP50_95": 0.642002,
+     "P": 0.948876,
+     "R": 0.821877,
      "AP50_per_class": {
-      "person": 0.9416,
-      "forklift": 0.9445,
-      "package": 0.8703
+      "person": 0.941636,
+      "forklift": 0.944457,
+      "package": 0.870301
      }
     },
     "real_test": {
-     "mAP50": 0.7931,
-     "mAP50_95": 0.5374,
-     "P": 0.8018,
-     "R": 0.7389,
+     "mAP50": 0.793119,
+     "mAP50_95": 0.537443,
+     "P": 0.801808,
+     "R": 0.738904,
      "AP50_per_class": {
-      "person": 0.7965,
-      "forklift": 0.6862,
-      "package": 0.8966
+      "person": 0.796522,
+      "forklift": 0.686221,
+      "package": 0.896616
      }
     }
    },
    "epoch8": {
     "sim_heldout": {
-     "mAP50": 0.9575,
-     "mAP50_95": 0.7378,
-     "P": 0.9738,
-     "R": 0.919,
+     "mAP50": 0.957465,
+     "mAP50_95": 0.73784,
+     "P": 0.97385,
+     "R": 0.91901,
      "AP50_per_class": {
-      "person": 0.9591,
-      "forklift": 0.9701,
-      "package": 0.9432
+      "person": 0.959138,
+      "forklift": 0.970076,
+      "package": 0.943181
      }
     },
     "real_test": {
-     "mAP50": 0.8522,
-     "mAP50_95": 0.6503,
-     "P": 0.84,
-     "R": 0.821,
+     "mAP50": 0.852195,
+     "mAP50_95": 0.650255,
+     "P": 0.839994,
+     "R": 0.821036,
      "AP50_per_class": {
-      "person": 0.8486,
-      "forklift": 0.7508,
-      "package": 0.9572
+      "person": 0.848552,
+      "forklift": 0.750821,
+      "package": 0.957212
      }
     }
    }
@@ -110,9 +110,9 @@
     "driving_video": {
      "frames": 6972,
      "raw_detector": {
-      "precision": 0.7224,
-      "recall": 0.9114,
-      "mAP50": 0.8978,
+      "precision": 0.722401,
+      "recall": 0.911425,
+      "mAP50": 0.897787,
       "tp": 4260,
       "fp": 1637,
       "fn": 414
@@ -123,9 +123,9 @@
       "package": 0.8878
      },
      "full_stack": {
-      "precision": 0.7917,
-      "recall": 0.9134,
-      "f1": 0.8482,
+      "precision": 0.791728,
+      "recall": 0.91335,
+      "f1": 0.848202,
       "tp": 4269,
       "fp": 1123,
       "fn": 405
@@ -163,9 +163,9 @@
     "driving_video": {
      "frames": 6972,
      "raw_detector": {
-      "precision": 0.9477,
-      "recall": 0.9895,
-      "mAP50": 0.9889,
+      "precision": 0.947746,
+      "recall": 0.989516,
+      "mAP50": 0.988896,
       "tp": 4625,
       "fp": 255,
       "fn": 49
@@ -176,9 +176,9 @@
       "package": 0.9985
      },
      "full_stack": {
-      "precision": 0.9512,
-      "recall": 0.9833,
-      "f1": 0.967,
+      "precision": 0.951159,
+      "recall": 0.983312,
+      "f1": 0.966968,
       "tp": 4596,
       "fp": 236,
       "fn": 78
