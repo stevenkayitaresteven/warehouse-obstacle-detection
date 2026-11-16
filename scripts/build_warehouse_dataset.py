@@ -45,7 +45,17 @@ def download(src: Path):
         z = src / f"{name}.zip"
         print("downloading", url)
         urllib.request.urlretrieve(url, z)
-        zipfile.ZipFile(z).extractall(src / name if name == "construction-ppe" else src)
+        if name == "construction-ppe":
+            zipfile.ZipFile(z).extractall(src / name)
+        else:
+            # newer archives have no top-level folder: images/ and labels/
+            # sit at the root of the zip, so give them their own folder
+            tmp = src / f"_{name}"
+            zipfile.ZipFile(z).extractall(tmp)
+            inner = tmp / name if (tmp / name / "images").exists() else tmp
+            inner.rename(src / name)
+            if tmp.exists():
+                shutil.rmtree(tmp)
         z.unlink()
 
 
