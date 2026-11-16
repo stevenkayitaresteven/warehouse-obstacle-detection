@@ -1,0 +1,223 @@
+{
+ "note": "Robot-view fine-tuning of YOLO11n for the real-image camera simulation. Epochs 1-2 were trained earlier; only their ONNX export survived and was recovered with scripts/recover_onnx_weights.py. Epochs 3-8 continued from it. Simulation and photo test sets only, not physical-robot results.",
+ "training": {
+  "data": {
+   "real_photos_train": 1699,
+   "robot_view_frames_train": 2400,
+   "real_photos_val": 288,
+   "robot_view_frames_val": 300,
+   "robot_view_frames": "scripts/make_sim_dataset.py, train cut-outs only, warehouse looks a and b"
+  },
+  "epochs_trained_here": "3-8",
+  "imgsz": 640,
+  "batch": 16,
+  "optimizer": "AdamW",
+  "lr0": 0.001,
+  "lrf": 0.1,
+  "warmup_epochs": 0.5,
+  "close_mosaic": 2,
+  "hours_cpu": 1.34,
+  "validation_epoch2": {
+   "precision": 0.8795,
+   "recall": 0.769,
+   "mAP50": 0.8376,
+   "mAP50_95": 0.6071
+  },
+  "per_epoch_log": "results/metrics/yolo_robotview_results.csv"
+ },
+ "heldout_tests": {
+  "robot_view_frames": "600 frames of the real-image camera; val/test cut-outs only (never trained on); warehouse looks a, b and c (c never used in training)",
+  "real_photos": "189 test photos of the 3-class dataset (scripts/build_warehouse_dataset.py)",
+  "results": {
+   "original": {
+    "sim_heldout": {
+     "mAP50": 0.5801,
+     "mAP50_95": 0.4011,
+     "P": 0.7548,
+     "R": 0.4644,
+     "AP50_per_class": {
+      "person": 0.8455,
+      "forklift": 0.5978,
+      "package": 0.2971
+     }
+    },
+    "real_test": {
+     "mAP50": 0.8767,
+     "mAP50_95": 0.6742,
+     "P": 0.8806,
+     "R": 0.8396,
+     "AP50_per_class": {
+      "person": 0.865,
+      "forklift": 0.8102,
+      "package": 0.9551
+     }
+    }
+   },
+   "epoch2": {
+    "sim_heldout": {
+     "mAP50": 0.9188,
+     "mAP50_95": 0.642,
+     "P": 0.9489,
+     "R": 0.8219,
+     "AP50_per_class": {
+      "person": 0.9416,
+      "forklift": 0.9445,
+      "package": 0.8703
+     }
+    },
+    "real_test": {
+     "mAP50": 0.7931,
+     "mAP50_95": 0.5374,
+     "P": 0.8018,
+     "R": 0.7389,
+     "AP50_per_class": {
+      "person": 0.7965,
+      "forklift": 0.6862,
+      "package": 0.8966
+     }
+    }
+   },
+   "epoch8": {
+    "sim_heldout": {
+     "mAP50": 0.9575,
+     "mAP50_95": 0.7378,
+     "P": 0.9738,
+     "R": 0.919,
+     "AP50_per_class": {
+      "person": 0.9591,
+      "forklift": 0.9701,
+      "package": 0.9432
+     }
+    },
+    "real_test": {
+     "mAP50": 0.8522,
+     "mAP50_95": 0.6503,
+     "P": 0.84,
+     "R": 0.821,
+     "AP50_per_class": {
+      "person": 0.8486,
+      "forklift": 0.7508,
+      "package": 0.9572
+     }
+    }
+   }
+  }
+ },
+ "in_simulation": {
+  "setup": "scripts/eval_real_image_sim.py --episodes 40 --frames-episodes 30 --no-emulated: 30 held-out warehouses driven by PPO + shield, every frame scored against the renderer's ground truth; then 40 navigation episodes (seeds 10000-10039) with the camera in the loop. Same seeds for both detectors.",
+  "results": {
+   "epoch2": {
+    "driving_video": {
+     "frames": 6972,
+     "raw_detector": {
+      "precision": 0.7224,
+      "recall": 0.9114,
+      "mAP50": 0.8978,
+      "tp": 4260,
+      "fp": 1637,
+      "fn": 414
+     },
+     "raw_AP50_per_class": {
+      "person": 0.9222,
+      "forklift": 0.8833,
+      "package": 0.8878
+     },
+     "full_stack": {
+      "precision": 0.7917,
+      "recall": 0.9134,
+      "f1": 0.8482,
+      "tp": 4269,
+      "fp": 1123,
+      "fn": 405
+     },
+     "stack_no_tracking": {
+      "precision": 0.9007,
+      "recall": 0.8789,
+      "f1": 0.8897
+     },
+     "style_c_only_raw_mAP50": 0.8677,
+     "distance_mae_m": 0.1102,
+     "unknown_object_recall": 0.7818
+    },
+    "navigation_40_episodes": {
+     "success_rate": 0.625,
+     "collision_rate": 0.1,
+     "timeout_rate": 0.275,
+     "mean_time_to_goal_s": 35.616,
+     "collisions_by_class": {
+      "pallet": 4
+     }
+    },
+    "navigation_hud": {
+     "raw": {
+      "precision": 0.6055,
+      "recall": 0.7964
+     },
+     "stack": {
+      "precision": 0.6596,
+      "recall": 0.8121
+     }
+    }
+   },
+   "epoch8": {
+    "driving_video": {
+     "frames": 6972,
+     "raw_detector": {
+      "precision": 0.9477,
+      "recall": 0.9895,
+      "mAP50": 0.9889,
+      "tp": 4625,
+      "fp": 255,
+      "fn": 49
+     },
+     "raw_AP50_per_class": {
+      "person": 0.9773,
+      "forklift": 0.9909,
+      "package": 0.9985
+     },
+     "full_stack": {
+      "precision": 0.9512,
+      "recall": 0.9833,
+      "f1": 0.967,
+      "tp": 4596,
+      "fp": 236,
+      "fn": 78
+     },
+     "stack_no_tracking": {
+      "precision": 0.9948,
+      "recall": 0.978,
+      "f1": 0.9863
+     },
+     "style_c_only_raw_mAP50": 0.9889,
+     "distance_mae_m": 0.1234,
+     "unknown_object_recall": 0.7802
+    },
+    "navigation_40_episodes": {
+     "success_rate": 0.625,
+     "collision_rate": 0.1,
+     "timeout_rate": 0.275,
+     "mean_time_to_goal_s": 33.472,
+     "collisions_by_class": {
+      "pallet": 3,
+      "unknown": 1
+     }
+    },
+    "navigation_hud": {
+     "raw": {
+      "precision": 0.8877,
+      "recall": 0.9858
+     },
+     "stack": {
+      "precision": 0.9346,
+      "recall": 0.9834
+     }
+    }
+   }
+  }
+ },
+ "deployed": {
+  "weights/yolo/best.onnx": "epoch 8 (robot-view camera)",
+  "weights/yolo/robotview.pt": "epoch 8, PyTorch",
+  "weights/yolo/best.pt": "unchanged: real-photo model used by the real-image detection tab (87.7% mAP@50 on real photos)"
+ }
+}
