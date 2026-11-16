@@ -1,5 +1,6 @@
 # Core requirements for the interactive demo + warehouse simulation.
-# Python 3.10 - 3.13. No PyTorch needed: the PPO policy is exported to NumPy.
+# Python 3.10 - 3.13. No PyTorch needed: the PPO policy is exported to NumPy
+# and the YOLO11n detector of the real-image camera runs from an ONNX file.
 # Easiest: run `python run_demo.py` (or run_demo.bat / ./run_demo.sh), which
 # installs these into a private .venv/ and starts the demo.
 numpy>=1.23
@@ -7,3 +8,4 @@ gymnasium>=0.29
 opencv-python-headless>=4.7
 Pillow>=9.0
 gradio>=6.0,<7
+onnxruntime>=1.17

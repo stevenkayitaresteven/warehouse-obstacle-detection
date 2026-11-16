@@ -45,6 +45,12 @@ SCENARIOS = {
         "workers": 6, "forklifts": 2, "pallets": 2, "boxes": 2},
 }
 
+CAMERA_CHOICES = [
+    ("Real-image camera: real photos + YOLO11n detector in the loop",
+     "real"),
+    ("Schematic camera: emulated detector (fast)", "schematic"),
+]
+
 _policy_cache = {}
 
 
@@ -52,6 +58,25 @@ def load_policy():
     if "ppo" not in _policy_cache:
         _policy_cache["ppo"] = NumpyPolicy(DEFAULT_POLICY)
     return _policy_cache["ppo"]
+
+
+def real_camera_status():
+    """(available, reason). The real-image camera needs the asset bank,
+    the ONNX detector and onnxruntime (or OpenCV's DNN module)."""
+    if "real" not in _policy_cache:
+        try:
+            from src.perception.onnx_detector import DEFAULT_ONNX, \
+                OnnxDetector
+            from src.simulation.photo_camera import available
+            if not available():
+                raise FileNotFoundError("assets/sim is missing")
+            if not DEFAULT_ONNX.exists():
+                raise FileNotFoundError(f"{DEFAULT_ONNX.name} is missing")
+            _policy_cache["detector"] = OnnxDetector()
+            _policy_cache["real"] = (True, _policy_cache["detector"].backend)
+        except Exception as exc:              # fall back to the schematic
+            _policy_cache["real"] = (False, str(exc).splitlines()[0][:160])
+    return _policy_cache["real"]
 
 
 class SimSession:
@@ -66,6 +91,8 @@ class SimSession:
         self.counts = None
         self.reflective = None
         self.running = False
+        self.camera_mode = "schematic"
+        self.set_camera("real" if real_camera_status()[0] else "schematic")
         self.reset()
 
     # ------------------------------------------------------------------
@@ -73,6 +100,21 @@ class SimSession:
         if self.controller.startswith("ppo"):
             return load_policy()
         return RuleBasedController()
+
+    def set_camera(self, mode):
+        """Switch between the real-image camera and the schematic one."""
+        from src.perception.camera_perception import (
+            attach_real_camera, detach_real_camera,
+        )
+        if mode == "real" and real_camera_status()[0]:
+            if self.env.vision is None:
+                attach_real_camera(self.env,
+                                   detector=_policy_cache["detector"])
+            self.camera_mode = "real"
+        else:
+            detach_real_camera(self.env)
+            self.camera_mode = "schematic"
+        return self.camera_mode
 
     def reset(self, new_layout=False):
         with self.lock:
@@ -93,6 +135,8 @@ class SimSession:
                 opts["counts"] = counts
             if refl is not None:
                 opts["reflective_prob"] = refl
+            if self.env.vision_meter is not None:
+                self.env.vision_meter.reset()
             self.obs, _ = self.env.reset(seed=self.episode_seed,
                                          options=opts)
             self.shield = SafetyShield()
@@ -182,6 +226,17 @@ class SimSession:
             f"**Shield interventions** {self.shield.interventions} · "
             f"**Near-misses** {env.near_misses} · "
             f"**Layout** #{self.layout_seed}")
+        meter = env.vision_meter
+        if self.camera_mode == "real" and meter is not None and meter.frames:
+            p, r, n = meter.short()
+            err = meter.summary()["range_mae_m"]
+            lines.append(
+                f"📷 **Real-image camera** (warehouse look "
+                f"{env.camera.style.upper()}, objects the detector never "
+                f"saw in training) · detector precision **{100 * p:.0f}%**"
+                f" · recall **{100 * r:.0f}%** over {n} objects"
+                + (f" · distance error {err:.2f} m" if err is not None
+                   else ""))
         return "\n\n".join(lines)
 
     def log_rows(self, n=12):

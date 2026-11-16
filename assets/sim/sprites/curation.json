@@ -1,0 +1,13 @@
+{
+ "note": "Sprites rejected after looking at the contact sheets (broken or partial masks).",
+ "reject": [
+  "person-val-v2026-475-0",
+  "person-val-v2026-021-1",
+  "forklift-train-76ef2e676-0",
+  "forklift-train-671e240aa-0",
+  "forklift-train-0e625f48e-0",
+  "forklift-test-50b563200-2",
+  "forklift-test-50b563200-3",
+  "unknown-train-v2026-545-7"
+ ]
+}

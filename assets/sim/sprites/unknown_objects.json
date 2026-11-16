@@ -1,0 +1,18 @@
+{
+ "note": "Hand-picked boxes of real objects that have NO class in the detector (person / forklift / package). SAM 2.1 turns each box into a mask. They play the 'unknown obstacle' role: only the depth branch can see them.",
+ "objects": [
+  {"image": "ultralytics-ppe-nov2026-147.jpg", "box": [520, 800, 860, 1340], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-247.jpg", "box": [570, 760, 890, 1275], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-447.jpg", "box": [505, 770, 905, 1310], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-547.jpg", "box": [650, 800, 965, 1280], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-121.jpg", "box": [30, 1040, 880, 1680], "name": "tool case", "height_m": 0.42},
+  {"image": "ultralytics-ppe-nov2026-321.jpg", "box": [15, 1100, 900, 1910], "name": "tool case", "height_m": 0.45},
+  {"image": "ultralytics-ppe-nov2026-513.jpg", "box": [330, 920, 900, 1850], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-545.jpg", "box": [530, 950, 935, 1560], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-613.jpg", "box": [480, 980, 895, 1650], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-645.jpg", "box": [235, 1015, 775, 1865], "name": "traffic cone", "height_m": 0.72},
+  {"image": "ultralytics-ppe-nov2026-553.jpg", "box": [85, 1385, 775, 1905], "name": "tool case", "height_m": 0.40},
+  {"image": "ultralytics-ppe-nov2026-653.jpg", "box": [5, 1130, 685, 1850], "name": "tool case", "height_m": 0.45},
+  {"image": "source-6b6114dea7ecbe5997f1f0393824508b.jpg", "box": [105, 715, 300, 975], "name": "pallet stack", "height_m": 1.25}
+ ]
+}
