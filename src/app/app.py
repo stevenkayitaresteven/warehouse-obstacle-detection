@@ -18,7 +18,8 @@ from pathlib import Path
 import gradio as gr
 
 from src.app.sim_session import (
-    CONTROLLER_CHOICES, PERCEPTION_CHOICES, SCENARIOS, SimSession,
+    CAMERA_CHOICES, CONTROLLER_CHOICES, PERCEPTION_CHOICES, SCENARIOS,
+    SimSession, real_camera_status,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,9 +49,10 @@ def on_load(request: gr.Request):
 
 
 def apply_settings(controller, perception, scenario, workers, forklifts,
-                   pallets, boxes, reflective, request: gr.Request):
+                   pallets, boxes, reflective, camera, request: gr.Request):
     sim = get_sim(request)
     sim.running = False
+    sim.set_camera(camera)
     sim.controller = controller
     sim.perception = perception
     sim.scenario = scenario
@@ -62,9 +64,10 @@ def apply_settings(controller, perception, scenario, workers, forklifts,
 
 
 def new_layout(controller, perception, scenario, workers, forklifts,
-               pallets, boxes, reflective, request: gr.Request):
+               pallets, boxes, reflective, camera, request: gr.Request):
     sim = get_sim(request)
     sim.running = False
+    sim.set_camera(camera)
     sim.controller, sim.perception, sim.scenario = (controller, perception,
                                                     scenario)
     sim.counts = {"workers": int(workers), "forklifts": int(forklifts),
@@ -239,10 +242,33 @@ INTRO = """
 policy drives a robot through a simulated warehouse using a camera-style
 *obstacle map* (detector + monocular depth fusion, uncertainty, tracking).
 A rule-based **safety shield** can override every action.
+
+**Real-image camera:** the robot's view on the right is built from real
+photos of the detector's training datasets (real racks, floor, workers,
+forklifts, parcels). Our fine-tuned **YOLO11n runs on every frame**; its
+boxes, the depth image and a tracker produce the obstacle map the robot
+drives on. The objects shown are ones the detector never saw in training.
 """
 
 HOW = """
 ### Pipeline (same design as the project document)
+
+### Real-image camera (image + video processing)
+
+| Step | What happens on every frame |
+|---|---|
+| Camera frame | The robot's view is rendered from **real photo material**: rack faces, floor, walls and ceiling are rectified regions of real warehouse photos; workers, forklifts and parcels are cut-outs of real photos, placed at the true distance and scale. A depth image comes with it. |
+| Map background subtraction | The known rack map is ray-cast into an *expected* depth image. Pixels clearly closer than expected, 0.15–1.7 m above the floor, are **foreground**: something is in the aisle that is not on the map. The threshold adapts to the depth noise measured on the floor. |
+| Depth image → range scan | For each of the 21 bearings the nearest return in the robot's height band (like `depthimage_to_laserscan`). |
+| Detector | Fine-tuned **YOLO11n** (ONNX, CPU) on the RGB frame. |
+| Box → metres | Distance from the depth pixels in the box **and** from where the box touches the floor (pinhole ground-plane geometry). If they disagree (stretch wrap fools depth), the nearer one wins. Boxes that do not stand out from the map, or have an impossible size, are rejected. |
+| Tracking (video) | Kalman filter per object on the floor plane, compensated for the robot's own motion: bridges missed frames, stabilises class and distance, gives velocity. Weak detections may extend a track but never start one. |
+| Unknown obstacles | Foreground not explained by any tracked object = **unknown obstacle** (magenta box): cones, tool cases, pallet stacks the detector has no class for. |
+| Specular highlights | Saturated pixels in the obstacle band raise the uncertainty score. |
+
+The boxes drawn on the camera view are the output of this stack; the small
+panel shows its precision and recall against the simulator's ground truth
+(the ground truth is used for scoring only).
 
 | Layer | In this demo |
 |---|---|
@@ -301,6 +327,13 @@ def build_ui():
                         label="Safety-shield decision log (latest first)",
                         interactive=False, wrap=True)
                 with gr.Column(scale=1, min_width=280):
+                    real_ok, real_msg = real_camera_status()
+                    camera = gr.Dropdown(
+                        CAMERA_CHOICES if real_ok else CAMERA_CHOICES[1:],
+                        value="real" if real_ok else "schematic",
+                        label="Robot camera",
+                        info=None if real_ok else
+                        f"Real-image camera unavailable: {real_msg}")
                     controller = gr.Dropdown(
                         CONTROLLER_CHOICES, value="ppo_shield",
                         label="Controller")
@@ -333,7 +366,7 @@ def build_ui():
                                                label="Reflective pallets (%)")
                     apply_btn = gr.Button("Apply settings & restart")
             settings = [controller, perception, scenario, workers, forklifts,
-                        pallets, boxes, reflective]
+                        pallets, boxes, reflective, camera]
             outs = [frame, status, log]
             demo.load(on_load, None, outs)
             run_evt = run_btn.click(run, [speed, auto], outs)
@@ -343,7 +376,7 @@ def build_ui():
             layout_btn.click(new_layout, settings, outs, cancels=[run_evt])
             apply_btn.click(apply_settings, settings, outs,
                             cancels=[run_evt])
-            for comp in (controller, perception):
+            for comp in (controller, perception, camera):
                 comp.change(apply_settings, settings, outs,
                             cancels=[run_evt])
             scenario.change(on_scenario, scenario,

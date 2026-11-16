@@ -255,6 +255,50 @@ def contact_sheet(items, path, cell=150, cols=12):
 
 
 # ----------------------------------------------------------------------
+def add_inner_labels(index, src, out):
+    """Forklift drivers are labelled "Person" in the dataset. If a labelled
+    person sits inside a forklift cut-out, keep that box with the sprite
+    (normalised to the sprite) so composite frames are labelled the same
+    way as the real training photos."""
+    ppe = Path(src) / "construction-ppe" / "construction-ppe"
+    n = 0
+    for s in index["sprites"]:
+        s.pop("inner", None)
+        if s["class"] != "forklift":
+            continue
+        p, lbl = find_image(ppe, s["source"] + ".jpg")
+        if p is None:
+            continue
+        with Image.open(p) as im:
+            w, h = im.size
+        x0, y0, x1, y1 = s["source_box"]
+        alpha = np.asarray(Image.open(Path(out) / s["file"]).convert(
+            "RGBA"))[..., 3]
+        ah, aw = alpha.shape
+        inner = []
+        for c, b, _ in read_labels(lbl, w, h):
+            if c != PERSON:
+                continue
+            ix0, iy0 = max(b[0], x0), max(b[1], y0)
+            ix1, iy1 = min(b[2], x1), min(b[3], y1)
+            area = (b[2] - b[0]) * (b[3] - b[1])
+            if ix1 <= ix0 or iy1 <= iy0 or \
+                    (ix1 - ix0) * (iy1 - iy0) < 0.7 * area:
+                continue
+            nb = [(ix0 - x0) / (x1 - x0), (iy0 - y0) / (y1 - y0),
+                  (ix1 - x0) / (x1 - x0), (iy1 - y0) / (y1 - y0)]
+            a = alpha[int(nb[1] * ah):max(int(nb[3] * ah), int(nb[1] * ah) + 1),
+                      int(nb[0] * aw):max(int(nb[2] * aw), int(nb[0] * aw) + 1)]
+            if (a > 127).mean() < 0.5:          # person not in the cut-out
+                continue
+            inner.append({"class": "person",
+                          "box": [round(float(v), 4) for v in nb]})
+        if inner:
+            s["inner"] = inner
+            n += 1
+    print(f"forklift sprites with a labelled driver: {n}")
+
+
 def split_of(dataset, prefix, stem):
     for s in ("train", "val", "test"):
         for ext in (".jpg", ".jpeg", ".png"):
@@ -281,7 +325,15 @@ def main():
     ap.add_argument("--sheets", default=None,
                     help="folder for QA contact sheets (not committed)")
     ap.add_argument("--only", default="person,forklift,package,unknown")
+    ap.add_argument("--inner-only", action="store_true",
+                    help="only refresh the driver boxes in index.json")
     a = ap.parse_args()
+    if a.inner_only:
+        ip = Path(a.out) / "index.json"
+        index = json.loads(ip.read_text())
+        add_inner_labels(index, a.src, a.out)
+        ip.write_text(json.dumps(index, indent=1))
+        return
     src, dataset, out = Path(a.src), Path(a.dataset), Path(a.out)
     only = set(a.only.split(","))
     out.mkdir(parents=True, exist_ok=True)
@@ -430,6 +482,7 @@ def main():
         n = sum(s["class"] == "unknown" for s in index["sprites"])
         print(f"unknown        : {n} sprites", flush=True)
 
+    add_inner_labels(index, src, out)
     index["sprites"].sort(key=lambda s: s["id"])
     index["note"] = ("Real objects cut out of the detector's training "
                      "datasets. See assets/sim/ATTRIBUTION.md.")

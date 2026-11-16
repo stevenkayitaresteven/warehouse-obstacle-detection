@@ -20,8 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def record(scenario, layout_seed, controller="ppo_shield", max_frames=450,
-           every=2, scale=0.5):
+           every=2, scale=0.5, camera="schematic"):
     sim = SimSession()
+    sim.set_camera(camera)
     sim.controller = controller
     sim.scenario = scenario
     sim.layout_seed = sim.episode_seed = layout_seed
@@ -43,8 +44,7 @@ def record(scenario, layout_seed, controller="ppo_shield", max_frames=450,
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "results" / "demo"))
-    args = ap.parse_args()
-    out = Path(args.out)
+    out = Path(ap.parse_known_args()[0].out)
     out.mkdir(parents=True, exist_ok=True)
     plan = [
         ("Random warehouse", 12, "random"),
@@ -52,13 +52,28 @@ def main():
         ("Fallen boxes (unknown objects) in the aisles", 21, "unknown_boxes"),
         ("Shiny stretch-wrapped pallets (reflective)", 5, "reflective"),
     ]
-    for scenario, seed, tag in plan:
-        assert scenario in SCENARIOS
-        frames, outcome = record(scenario, seed)
+    ap.add_argument("--real-only", action="store_true",
+                    help="only record the real-image camera GIFs")
+    args = ap.parse_args()
+    if not args.real_only:
+        for scenario, seed, tag in plan:
+            assert scenario in SCENARIOS
+            frames, outcome = record(scenario, seed)
+            p = out / f"demo_{tag}.gif"
+            frames[0].save(p, save_all=True, append_images=frames[1:],
+                           duration=100, loop=0, optimize=True)
+            print(f"{p.name}: {outcome} ({len(frames)} frames)")
+    # the same robot, seen through the real-image camera
+    for scenario, seed, tag in [("Random warehouse", 12, "real_camera"),
+                                ("Busy shift: many workers + forklifts", 33,
+                                 "real_camera_busy")]:
+        frames, outcome = record(scenario, seed, camera="real", every=3,
+                                 scale=0.5)
         p = out / f"demo_{tag}.gif"
         frames[0].save(p, save_all=True, append_images=frames[1:],
-                       duration=100, loop=0, optimize=True)
-        print(f"{p.name}: {outcome} ({len(frames)} frames)")
+                       duration=150, loop=0, optimize=True)
+        print(f"{p.name}: {outcome} ({len(frames)} frames, "
+              f"{p.stat().st_size / 1e6:.1f} MB)")
 
 
 if __name__ == "__main__":

@@ -83,6 +83,7 @@ class Sprite:
     aspect: float            # width / height
     height_m: float
     name: str = ""
+    inner: tuple = ()        # labelled boxes inside the cut-out (driver)
     _mips: list | None = None
 
     def mips(self):
@@ -134,7 +135,9 @@ class SpriteBank:
                 h = float(s.get("height_m", 0.6))
             self.by_class[s["class"]].append(Sprite(
                 s["id"], s["class"], s["split"], root / s["file"], aspect,
-                h, s.get("name", s["class"])))
+                h, s.get("name", s["class"]),
+                tuple((i["class"], tuple(i["box"]))
+                      for i in s.get("inner", []))))
         for lst in self.by_class.values():
             lst.sort(key=lambda sp: sp.sid)
 
@@ -244,10 +247,17 @@ class CameraFrame:
 
 
 class PhotoCamera:
-    """Forward-looking pinhole camera rendered from real photo material."""
+    """Forward-looking pinhole camera rendered from real photo material.
 
-    def __init__(self, width=640, height=384, fov_deg=120.0, cam_height=1.0,
-                 horizon=0.44, splits=("val", "test"), style=None,
+    The camera sits 0.6 m above the floor (a typical AMR sensor height)
+    with the horizon at 40 % of the image height, so it sees the floor
+    from 0.5 m ahead: an object taller than 0.2 m stays in view until the
+    robot touches it. (A camera at 1 m loses low objects when they are
+    closer than about 0.6 m, and the robot then forgets them.)
+    """
+
+    def __init__(self, width=640, height=384, fov_deg=120.0, cam_height=0.6,
+                 horizon=0.40, splits=("val", "test"), style=None,
                  styles=("a", "b", "c"), assets=ASSETS, seed=0,
                  effects=True):
         self.w, self.h = int(width), int(height)
@@ -360,22 +370,23 @@ class PhotoCamera:
             D = _ray_aabb(env.x, env.y, dx, dy, bx, by, hw, hh)
             k = np.argmin(D, axis=1)
             d = D[np.arange(self.w), k]
+            miss = ~np.isfinite(d)
+            d = np.where(miss, 60.0, d)       # robot outside the walls
             hx, hy = env.x + d * dx, env.y + d * dy
             lx, ly = hx - bx[k], hy - by[k]
             # which face: the one whose plane the hit point lies on
             on_x = np.abs(np.abs(lx) - hw[k]) < np.abs(np.abs(ly) - hh[k])
-            return d, k, lx, ly, hx, hy, on_x, hw[k], hh[k]
+            return d, k, lx, ly, hx, hy, on_x, hw[k], hh[k], ~miss
 
         out = {}
-        d, k, lx, ly, hx, hy, on_x, hw, hh = cast(env.walls)
+        d, k, lx, ly, hx, hy, on_x, hw, hh, _ = cast(env.walls)
         # coordinate along the wall, running left -> right for the viewer
         along = np.where(on_x, np.where(lx > 0, hy, -hy),
                          np.where(ly > 0, -hx, hx))
         out["wall_z"] = (d * self.cos_a).astype(np.float32)
         out["wall_u"] = along.astype(np.float32)
         if env.racks:
-            d, k, lx, ly, hx, hy, on_x, hw, hh = cast(env.racks)
-            hit = np.isfinite(d)
+            d, k, lx, ly, hx, hy, on_x, hw, hh, hit = cast(env.racks)
             tex_id = np.zeros(self.w, np.int32)
             u_m = np.zeros(self.w, np.float32)
             for i in np.unique(k[hit]):
@@ -635,7 +646,8 @@ class PhotoCamera:
                              float(min(x0 + w_px, W)), float(min(y1, H))],
                 "full_px": full_px, "in_frame_px": total,
                 "bottom_cut": bool(y1 > H),
-                "reflective": bool(getattr(o, "reflective", False))})
+                "reflective": bool(getattr(o, "reflective", False)),
+                "_rect": (x0, y0, w_px, h_px, flip), "_inner": sp.inner})
         # visible boxes after all occlusions
         gt = []
         for i, r in enumerate(records):
@@ -648,7 +660,30 @@ class PhotoCamera:
             r["bbox"] = [float(x0 + xs.min()), float(y0 + ys.min()),
                          float(x0 + xs.max() + 1), float(y0 + ys.max() + 1)]
             r["visible"] = min(n / max(r["full_px"], 1.0), 1.0)
+            sx0, sy0, sw, sh, flip = r.pop("_rect")
+            inner = r.pop("_inner")
             gt.append(r)
+            # labelled parts of the cut-out (a forklift's driver)
+            for cls, (bx0, by0, bx1, by1) in inner:
+                if flip:
+                    bx0, bx1 = 1.0 - bx1, 1.0 - bx0
+                ib = [max(sx0 + bx0 * sw, 0.0), max(sy0 + by0 * sh, 0.0),
+                      min(sx0 + bx1 * sw, float(W)),
+                      min(sy0 + by1 * sh, float(H))]
+                if ib[2] - ib[0] < 2 or ib[3] - ib[1] < 2:
+                    continue
+                sub = ids[int(ib[1]):int(ib[3]) + 1,
+                          int(ib[0]):int(ib[2]) + 1] == i
+                gt.append({
+                    "uid": r["uid"], "category": PERSON, "class_name": cls,
+                    "name": "driver", "sprite": r["sprite"], "z": r["z"],
+                    "range": r["range"], "bbox": ib, "full_box": ib,
+                    "visible": float(sub.mean()) * min(
+                        (ib[2] - ib[0]) * (ib[3] - ib[1])
+                        / max((bx1 - bx0) * sw * (by1 - by0) * sh, 1.0),
+                        1.0),
+                    "bottom_cut": False, "reflective": False,
+                    "inner_of": r["uid"]})
         return gt, ids, mirror, glint
 
     def _contact_shadow(self, img, zbuf, uc, y1, w_px, z_front):

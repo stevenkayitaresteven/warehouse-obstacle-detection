@@ -34,6 +34,13 @@ that looks the same whether it came from simulation or a real camera.
 Global path: the static rack layout is known (as in real AMR fleets), so a
 grid distance field to the goal provides a "carrot" waypoint. The RL policy
 is responsible for local obstacle avoidance and speed control.
+
+Real-image camera (optional): ``attach_real_camera(env)`` replaces steps 1
+and 2 by an actual image pipeline. Every step the robot's view is rendered
+from real photo material (src/simulation/photo_camera.py), the fine-tuned
+YOLO11n detector runs on that frame and the depth image is processed
+(src/perception/camera_perception.py). Fusion, uncertainty, tracking, the
+observation and the policy stay exactly the same.
 """
 
 from __future__ import annotations
@@ -248,6 +255,11 @@ class WarehouseEnv(_GymBase):
             )
         self.np_random = np.random.default_rng(seed)
         self.speed_cap = None   # set by the safety shield
+        self.camera = None      # real-image camera (PhotoCamera) or None
+        self.vision = None      # its perception stack (CameraPerception)
+        self.vision_meter = None
+        self.frame = None
+        self.vision_result = None
         self._uid = 0
         self.statics: list[Obstacle] = []
         self.dynamics: list[Obstacle] = []
@@ -693,6 +705,11 @@ class WarehouseEnv(_GymBase):
         self.percep = PerceptionState()
         self.sec_dist = None
         self.percep.sector_uncertainty = np.zeros(c.n_sectors)
+        if self.camera is not None:
+            # new warehouse look and new cut-outs for this episode
+            self.camera.reset(self, int(rng.integers(1 << 30)),
+                              style=options.get("style"))
+            self.vision.reset()
         self._perceive()
         return self._observation(), self._info()
 
@@ -961,11 +978,29 @@ class WarehouseEnv(_GymBase):
         d = np.minimum(d, c.max_range)
         return d, hit
 
-    def _perceive(self):
-        """Run the simulated detector + depth + fusion + tracking stack."""
+    def _sense_camera(self, use_depth, use_track):
+        """Sensing with the real-image camera: render the robot's view,
+        run the detector and the image / video processing on it."""
+        c = self.cfg
+        true_d, hit = self.cast(self.ray_angles)      # for scoring only
+        frame = self.camera.render(self, self.np_random)
+        res = self.vision.process(self, frame, use_depth=use_depth,
+                                  use_tracking=use_track)
+        self.frame, self.vision_result = frame, res
+        if self.vision_meter is not None:
+            self.vision_meter.update(frame, res)
+        depth = np.clip(res.depth, 0.05, c.max_range)
+        det_label = res.det_label.copy()
+        det_dist = res.det_dist.copy()
+        seen = {g["uid"]: True for g in frame.gt}
+        return (true_d, hit, depth, res.specular.copy(),
+                np.zeros(c.n_rays, dtype=bool), det_label, det_dist, seen)
+
+    def _sense_emulated(self):
+        """Sensing without images: emulate the detector and the depth
+        branch directly on the ray cast (fast; used for PPO training)."""
         c = self.cfg
         rng = self.np_random
-        use_depth, use_unc, use_track = PERCEPTION_MODES[self.perception_mode]
         true_d, hit = self.cast(self.ray_angles)
         n = c.n_rays
 
@@ -1006,6 +1041,20 @@ class WarehouseEnv(_GymBase):
                 if detected[o.uid]:
                     det_label[i] = o.category
                     det_dist[i] = true_d[i] * (1 + rng.normal(0, 0.03))
+        return (true_d, hit, depth, specular, mirror_fail, det_label,
+                det_dist, detected)
+
+    def _perceive(self):
+        """Run the detector + depth + fusion + tracking stack."""
+        c = self.cfg
+        use_depth, use_unc, use_track = PERCEPTION_MODES[self.perception_mode]
+        n = c.n_rays
+        if self.vision is not None:
+            sensed = self._sense_camera(use_depth, use_track)
+        else:
+            sensed = self._sense_emulated()
+        (true_d, hit, depth, specular, mirror_fail, det_label, det_dist,
+         detected) = sensed
         self.detections = detected
 
         # ---- Fusion ---------------------------------------------------

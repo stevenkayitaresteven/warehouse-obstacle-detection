@@ -82,6 +82,7 @@ logs/
 
 # Fine-tuned warehouse detector + its results ARE committed
 !weights/yolo/best.pt
+!weights/yolo/best.onnx
 !results/metrics/yolo_eval.json
 !results/metrics/yolo_results.csv
 !results/metrics/warehouse3_dataset.json

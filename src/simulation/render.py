@@ -8,6 +8,11 @@ Produces one RGB frame composed of:
 * a simulated first-person camera view with detector boxes,
 * the simulated depth map strip (what the depth branch sees),
 * a HUD with speed, action, shield decision and uncertainty gauge.
+
+With the real-image camera attached (``env.frame`` is set) the camera
+panel shows the actual frame the detector ran on, with the boxes, track
+ids and distances the perception stack reported, next to the depth image
+and the detector's running precision / recall.
 """
 
 from __future__ import annotations
@@ -199,9 +204,12 @@ def draw_map(env, trail=None, show_rays=True):
             continue
         if hit.uid not in seen or d < seen[hit.uid][0]:
             seen[hit.uid] = (d, lab, hit)
+    real = getattr(env, "frame", None) is not None
     for d, lab, hit in seen.values():
         px, py = _to_px(env, hit.x, hit.y)
         name = CATEGORY_NAMES.get(int(lab), "?") if lab >= 0 else "?"
+        if real and name == "pallet":
+            name = "package"         # the real detector's class name
         s = f"{name} {d:.1f}m"
         _text(img, s, (px - 30, py - int(max(hit.hh, hit.radius) * SCALE)
                        - 6), 0.4, (20, 20, 20), 1)
@@ -368,17 +376,60 @@ def draw_hud(env, w=PANEL_W, h=None, decision=None, controller="",
     return img
 
 
+def draw_real_side(env, decision=None, controller="", reward=0.0,
+                   totals=None):
+    """Side panel for the real-image camera: the frame the detector saw
+    (with what the perception stack reported), HUD, depth image and the
+    detector's running score against ground truth."""
+    from src.perception.camera_perception import draw_overlay
+    frame, res = env.frame, env.vision_result
+    cam = draw_overlay(frame.rgb, res)
+    w = cam.shape[1]
+    _text(cam, "Real-image camera + YOLO11n detector", (6, cam.shape[0] - 8),
+          0.45, (255, 255, 255), 1)
+    hud_w = 396
+    hud = draw_hud(env, w=hud_w, h=262, decision=decision,
+                   controller=controller, reward=reward, totals=totals)
+    info = np.full((262, w - hud_w, 3), COL["panel"], np.uint8)
+    tw = info.shape[1] - 12
+    th = int(tw * frame.depth.shape[0] / frame.depth.shape[1])
+    near = 1.0 - np.clip(frame.depth / env.cfg.max_range, 0, 1)
+    dep = cv2.applyColorMap((near * 255).astype(np.uint8),
+                            cv2.COLORMAP_INFERNO)[:, :, ::-1]
+    info[20:20 + th, 6:6 + tw] = cv2.resize(dep, (tw, th),
+                                            interpolation=cv2.INTER_AREA)
+    _text(info, "Depth image (near = bright)", (6, 14), 0.4, COL["muted"])
+    y = 20 + th + 18
+    meter = getattr(env, "vision_meter", None)
+    if meter is not None and meter.frames:
+        p, r, n = meter.short()
+        _text(info, f"Detector vs ground truth ({n} objects)", (6, y), 0.4,
+              COL["muted"])
+        y += 20
+        _text(info, f"precision {100 * p:.0f}%   recall {100 * r:.0f}%",
+              (6, y), 0.5, COL["text"], 1)
+        y += 20
+    ms = sum(res.ms.values()) if res is not None else 0.0
+    _text(info, f"{len(res.objects)} tracked, {len(res.unknown)} unknown"
+          f"   {ms:.0f} ms", (6, y), 0.4, COL["muted"])
+    return np.vstack([cam, np.hstack([hud, info])])
+
+
 def render_frame(env, decision=None, controller="", reward=0.0, totals=None,
                  trail=None):
     m = draw_map(env, trail=trail)
-    cam = draw_camera(env)
-    strip = draw_depth_strip(env)
-    hud_h = max(m.shape[0] - cam.shape[0] - strip.shape[0], 120)
-    hud = draw_hud(env, h=hud_h, decision=decision, controller=controller,
-                   reward=reward, totals=totals)
-    side = np.vstack([cam, strip, hud])
+    if getattr(env, "frame", None) is not None and \
+            getattr(env, "vision_result", None) is not None:
+        side = draw_real_side(env, decision, controller, reward, totals)
+    else:
+        cam = draw_camera(env)
+        strip = draw_depth_strip(env)
+        hud_h = max(m.shape[0] - cam.shape[0] - strip.shape[0], 120)
+        hud = draw_hud(env, h=hud_h, decision=decision,
+                       controller=controller, reward=reward, totals=totals)
+        side = np.vstack([cam, strip, hud])
     if side.shape[0] < m.shape[0]:
-        pad = np.full((m.shape[0] - side.shape[0], PANEL_W, 3),
+        pad = np.full((m.shape[0] - side.shape[0], side.shape[1], 3),
                       COL["panel"], np.uint8)
         side = np.vstack([side, pad])
     elif side.shape[0] > m.shape[0]:

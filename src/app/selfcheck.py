@@ -63,6 +63,22 @@ def main():
     assert frame.dtype == np.uint8
     print(f"[1/3] simulation + PPO policy OK ({sim.env.steps} steps, "
           f"frame {frame.shape[1]}x{frame.shape[0]})")
+    from src.app.sim_session import real_camera_status
+    ok, why = real_camera_status()
+    if ok:
+        assert sim.camera_mode == "real" and sim.env.frame is not None
+        m = sim.env.vision_meter.summary()
+        print(f"      real-image camera OK: YOLO11n via {why}, "
+              f"{m['ms_per_frame']:.0f} ms per frame, "
+              f"{sim.env.vision_meter.short()[2]} objects scored")
+        sim.set_camera("schematic")
+        sim.reset()
+        for _ in range(10):
+            sim.step()
+        assert sim.frame().shape[2] == 3
+    else:
+        print(f"      real-image camera not available ({why}); "
+              f"using the schematic camera")
 
     import gradio as gr
 
