@@ -169,6 +169,63 @@ python -m scripts.eval_yolo --weights weights/yolo/best.pt
 
 *Why not LOCO yet?* LOCO's download server could not be reached from our training machine, so this week we used the public Ultralytics datasets above. `scripts/prepare_loco.py` + `training/train_yolo.py` train on LOCO (pallets, stillages, small load carriers) on Colab; that is next week's plan. Dataset licences: see the Ultralytics dataset pages (construction-ppe, package-seg).
 
+## 📷 Real-image camera: the detector fine-tuned for the robot's view
+
+With the **real-image camera** (the demo's default), every frame the robot sees is built from real photos: rack, floor and wall photos, plus real cut-outs of workers, forklifts and parcels. YOLO11n runs on every frame. Photos taken by people look different from a camera 0.6 m above the floor in a rack aisle, so the detector was **fine-tuned for the robot's view**:
+
+* **Training data:** the 1,699 real training photos above, plus 2,400 robot-view frames (`scripts/make_sim_dataset.py`) built only from cut-outs of *training* photos, in warehouse looks a and b.
+* **8 epochs** on a CPU. Epochs 1–2 were trained earlier, but only their ONNX export survived. `scripts/recover_onnx_weights.py` turned it back into a trainable checkpoint that reproduces the ONNX outputs to within 6e-4 px. Epochs 3–8 continued from there (1.3 h, AdamW, lr 0.001 → 0.0001).
+* **Held-out tests:**
+  * 600 robot-view frames with objects the detector never saw (val/test cut-outs), in warehouse looks a, b and c (c was never used for training);
+  * the 189 real test photos.
+
+| Detector | Robot-view frames, mAP@50 (precision / recall) | Real test photos, mAP@50 |
+|---|---|---|
+| Original (real photos only, `best.pt`) | 58.0% (75.5% / 46.4%) | **87.7%** |
+| Robot-view, epoch 2 | 91.9% (94.9% / 82.2%) | 79.3% |
+| **Robot-view, epoch 8** (`best.onnx`) | **95.7% (97.4% / 91.9%)** | 85.2% |
+
+**With the robot driving.** The robot drove 30 held-out warehouses, and each of the 6,972 camera frames was scored against the simulator's ground truth (`python -m scripts.eval_real_image_sim --no-emulated`):
+
+| | Epoch 2 | **Epoch 8** |
+|---|---|---|
+| Raw detector: precision / recall / mAP@50 | 72.2% / 91.1% / 89.8% | **94.8% / 99.0% / 98.9%** |
+| False alarms / missed objects | 1,637 / 414 | **255 / 49** |
+| Full perception stack (depth gates + tracking): precision / recall | 79.2% / 91.3% | **95.1% / 98.3%** |
+| Demo HUD during 40 navigation runs: precision / recall | 66.0% / 81.2% | **93.5% / 98.3%** |
+
+![robot-view fine-tuning](results/graphs/yolo_robotview_finetune.png)
+
+**What did not change:** navigation with the camera in the loop. Over 40 held-out episodes, 62.5% reached the goal, 10% collided and 27.5% timed out, with **both** detectors. So the remaining failures are not detection failures:
+
+* **Collisions:** mostly pallets right *beside* the robot, which leave the 120° field of view while it turns (a blind spot).
+* **Time-outs:** the robot waits in front of obstacles instead of driving around them.
+
+The policy was trained on the emulated perception. Fixing these failures is the next step (longer memory of obstacles outside the field of view, and fine-tuning the policy with the camera in the loop).
+
+`best.pt` (real photos) still powers the 📷 *Real image detection* tab, because it is better on real photos. `best.onnx` (epoch 8) is the robot's camera detector. `weights/yolo/robotview.pt` is the epoch-8 PyTorch checkpoint for further training. All numbers are in [`results/metrics/detector_finetune.json`](results/metrics/detector_finetune.json), and the per-epoch log is in [`results/metrics/yolo_robotview_results.csv`](results/metrics/yolo_robotview_results.csv).
+
+<details><summary>Reproduce the robot-view fine-tuning</summary>
+
+```bash
+pip install -r requirements-perception.txt                  # ultralytics + torch
+python -m scripts.build_warehouse_dataset --src data_downloads --download --out datasets/processed/warehouse3
+python -m scripts.make_sim_dataset --out datasets/processed/simcam --split train --frames 2400 --sprites train --styles a,b --seed0 500000
+python -m scripts.make_sim_dataset --out datasets/processed/simcam --split val --frames 300 --sprites train --styles a,b --seed0 600000
+python -m scripts.make_sim_dataset --out datasets/processed/simcam --split test --frames 600 --sprites val,test --styles a,b,c --seed0 900000
+# data_v2.yaml: train = warehouse3/images/train + simcam/images/train, val = warehouse3/images/val + simcam/images/val
+# what was done here: recover the epoch-2 weights from ONNX, then train epochs 3-8
+python scripts/recover_onnx_weights.py --onnx <epoch-2 best.onnx> --ref weights/yolo/best.pt --images datasets/processed/simcam/images/train datasets/processed/warehouse3/images/train --out recovered_epoch2.pt
+yolo detect train model=recovered_epoch2.pt data=datasets/processed/data_v2.yaml epochs=6 imgsz=640 batch=16 device=cpu optimizer=AdamW lr0=0.001 lrf=0.1 warmup_epochs=0.5 warmup_bias_lr=0.001 close_mosaic=2 seed=0
+yolo export model=runs/detect/train/weights/best.pt format=onnx imgsz=384,640 opset=12 simplify=True
+python -m scripts.eval_real_image_sim --onnx runs/detect/train/weights/best.onnx --out results/metrics/real_image_eval_new.json --no-emulated
+python -m scripts.plot_detector_finetune
+```
+
+To train further, start from `weights/yolo/robotview.pt` (epoch 8) instead of the recovered weights, with a smaller learning rate (for example `lr0=0.0005`).
+
+</details>
+
 ---
 
 ## 🧠 System design

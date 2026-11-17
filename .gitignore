@@ -88,5 +88,9 @@ logs/
 !results/metrics/warehouse3_dataset.json
 !results/graphs/yolo_*.png
 !results/graphs/yolo_*.jpg
+# Robot-view fine-tuning of the detector (real-image camera)
+!results/metrics/yolo_robotview_results.csv
+!results/metrics/detector_finetune.json
+!weights/yolo/robotview.pt
 results/yolo_eval/
 datasets/processed/warehouse3/
