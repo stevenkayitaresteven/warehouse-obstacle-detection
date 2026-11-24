@@ -52,6 +52,7 @@ results/demo/*
 # ...but keep the small simulation results that the demo displays
 !results/metrics/navigation_eval.json
 !results/metrics/perception_eval.json
+!results/metrics/real_image_eval.json
 !results/metrics/training_*.csv
 !results/graphs/ppo_training_curve.png
 !results/demo/*.gif
