@@ -33,6 +33,13 @@ Per frame:
    return is an *unknown obstacle* (found by depth only).
 7. **Specular highlights** are found in the RGB image (saturated pixels in
    the obstacle band) and feed the uncertainty score.
+
+Depth hole filling: stretch wrap makes the depth sensor "see through" an
+object in vertical bands. A band of background-looking depth that has
+foreground on both sides in the same image rows is filled with the
+neighbouring foreground depth (horizontal morphological closing). Rays
+that needed filling are reported as uncertain, so the robot still slows
+down near shiny loads, but it no longer sees a gap that is not there.
 """
 
 from __future__ import annotations
@@ -74,6 +81,8 @@ class PerceptionConfig:
     fg_rel: float = 0.07         # closer than the map by this fraction ...
     fg_abs: float = 0.10         # ... plus this many metres = foreground
     fg_sigma: float = 2.6        # or this many sigmas of the depth noise
+    fill_px: int = 45            # widest see-through band that is filled
+    max_coast: int = 2           # frames a track is reported without a box
     saturation: int = 250        # RGB level that counts as a specular glint
 
 
@@ -100,8 +109,10 @@ class CameraPerception:
         self.detector = detector if detector is not None else OnnxDetector(
             DEFAULT_ONNX)
         self.tracker = GroundTracker(dt=dt, conf_new=self.cfg.conf_new,
-                                     conf_instant=self.cfg.conf_instant)
+                                     conf_instant=self.cfg.conf_instant,
+                                     max_misses=self.cfg.max_coast)
         self._kernel = np.ones((3, 3), np.uint8)
+        self._fill = np.ones((1, self.cfg.fill_px), np.uint8)
         self._setup_rays(n_rays, fov_deg)
         self.last = None
 
@@ -192,11 +203,29 @@ class CameraPerception:
         # foreground threshold adapts to the sensor noise in this frame
         sigma = self._noise_level(depth, z_map)
         rel = max(cfg.fg_rel, cfg.fg_sigma * sigma)
-        fg = band & (depth < z_map * (1.0 - rel) - cfg.fg_abs)
+        # (low parts of an object count too: the "closer than the map"
+        # test already rules the floor out)
+        fg = (height > 0.05) & (height < cfg.max_height) & \
+            (depth < z_map * (1.0 - rel) - cfg.fg_abs)
         fg = cv2.morphologyEx(fg.astype(np.uint8), cv2.MORPH_OPEN,
                               self._kernel).astype(bool)
+        filled = np.zeros(len(self.windows), bool)
         if not use_depth:
             fg[:] = False
+        elif fg.any():
+            # fill see-through bands inside foreground objects
+            fg8 = fg.astype(np.uint8)
+            closed = cv2.morphologyEx(fg8, cv2.MORPH_CLOSE, self._fill)
+            holes = (closed > 0) & ~fg
+            if holes.any():
+                near = cv2.erode(np.where(fg, depth, np.float32(1e3)),
+                                 self._fill)
+                holes &= near < depth          # only where depth reads far
+                depth = np.where(holes, near, depth)
+                fg = fg | holes
+                band = band | holes
+                for i, (a, b) in enumerate(self.windows):
+                    filled[i] = holes[:, a:b].sum() >= 6
 
         # --- 2. range scan ---------------------------------------------
         z_fg = self._scan(depth, fg, self.windows)       # unmapped things
@@ -353,6 +382,7 @@ class CameraPerception:
                 y_b = int(min(cy + f * cam_h / z, H))
                 y_t = int(max(cy + f * (cam_h - 1.6) / z, 0))
                 specular[i] = sat[y_t:y_b, a:b].sum() >= 3
+        specular |= filled            # depth had to be repaired here
 
         # --- unknown obstacles: foreground not explained by a track ----
         unknown = self._unknown_blobs(fg, depth, z_map, objects) \

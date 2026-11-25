@@ -9,7 +9,12 @@ perception stack (detector + monocular depth fusion, uncertainty, tracking).
 A **PPO reinforcement-learning policy** chooses the actions, and a
 rule-based **safety shield** can override it.
 
-![demo](results/demo/demo_random.gif)
+**New: real-image camera.** The robot's camera view is built from real
+warehouse photos of the detector's training datasets, and our fine-tuned
+YOLO11n runs on every frame while the robot drives
+([details and results](#-real-image-camera-the-simulation-runs-on-real-warehouse-photos)).
+
+![real-image camera demo](results/demo/demo_real_camera.gif)
 
 ---
 
@@ -19,7 +24,7 @@ rule-based **safety shield** can override it.
 [![Docker image](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/docker.yml/badge.svg)](https://github.com/stevenkayitaresteven/warehouse-obstacle-detection/actions/workflows/docker.yml)
 
 **You only need [Python 3.10 – 3.13](https://www.python.org/downloads/) and an internet connection the first time.**
-No GPU and no PyTorch: the trained robot policy is a small NumPy file. The launcher creates a private environment (`.venv/`), installs everything into it, and opens the demo in your browser. Installing takes 1–3 minutes the first time; later starts take a few seconds.
+No GPU and no PyTorch: the trained robot policy is a small NumPy file and the detector runs from an ONNX file. The launcher creates a private environment (`.venv/`), installs everything into it, and opens the demo in your browser. Installing takes 1–3 minutes the first time; later starts take a few seconds.
 
 ### Windows (Command Prompt / cmd)
 
@@ -98,7 +103,8 @@ The image is built and tested on every change for amd64 (Intel/AMD PCs) and arm6
 
 | Control | What it shows |
 |---|---|
-| **▶ Run / ⏸ Pause / ⏭ Step** | The robot drives live. The map, the simulated camera with detector boxes, the depth strip, and the HUD update every frame. |
+| **▶ Run / ⏸ Pause / ⏭ Step** | The robot drives live. The map, the camera view with detector boxes, the depth image, and the HUD update every frame. |
+| **Robot camera** | `Real-image camera` (default): the view is built from real photos and the real YOLO11n detector runs on it. `Schematic camera`: the earlier flat-colour view with an emulated detector (faster). |
 | **Click on the map** | Drops a *fallen box (unknown object)*, a *standing worker* or a *shiny pallet* in the robot's way. You can also remove obstacles. The robot reacts immediately. |
 | **Controller** | `PPO + Safety Shield` (full system), `PPO only`, or the `Rule-based baseline`. |
 | **Perception stack** | Ablation: `Detector only` → `+ depth fusion` → `+ uncertainty` → `+ tracking`. With *Detector only*, the robot cannot see unknown boxes and drives into them. |
@@ -126,6 +132,111 @@ The image is built and tested on every change for amd64 (Intel/AMD PCs) and arm6
    ablation table.
 
 Backup GIFs for the presentation are in [`results/demo/`](results/demo/).
+
+## 📷 Real-image camera: the simulation runs on real warehouse photos
+
+The robot's camera view used to be flat colour slabs with an *emulated*
+detector. Now every frame is **built from real photos of the datasets the
+detector was trained on**, and the **real fine-tuned YOLO11n runs on it**.
+The robot still has to reach the goal and avoid obstacles; the obstacle map
+(47 values), the PPO policy and the safety shield are unchanged, so this is
+the sim-to-real argument of the project put to a test.
+
+![busy shift through the real-image camera](results/demo/demo_real_camera_busy.gif)
+
+### How a frame is made
+
+| Part of the frame | Where it comes from |
+|---|---|
+| Rack faces, walls with dock doors, floor, ceiling | Flat regions of real warehouse photos, warped to a front view. The rack's vanishing points are found automatically (orange beams, RANSAC over Hough lines), so beams come out level. [`scripts/build_textures.py`](scripts/build_textures.py) |
+| Workers, forklifts | Cut out of real photos with SAM 2.1 from the labelled boxes. Only people with head and feet visible and not occluded are kept. [`scripts/build_sprite_bank.py`](scripts/build_sprite_bank.py) |
+| Parcels | Cut out with the dataset's own segmentation polygons. |
+| Unknown objects | Traffic cones, tool cases and a pallet stack from the same photos. The detector has **no class** for them. |
+| Geometry | A ray caster puts the textures on the simulation's racks and walls (pinhole camera, 120° FOV, 0.6 m high) and draws every cut-out at its true distance and size, with correct occlusion. The depth of a cut-out follows the object's real footprint. [`src/simulation/photo_camera.py`](src/simulation/photo_camera.py) |
+
+The bank is 300 cut-outs and 12 textures (5 MB, [`assets/sim/`](assets/sim/),
+sources and licences in [`ATTRIBUTION.md`](assets/sim/ATTRIBUTION.md)).
+Each cut-out keeps the split of its photo. **Fine-tuning used train cut-outs
+only; the demo and all results below use val/test cut-outs only**, so the
+detector has never seen these people, forklifts and parcels.
+
+### Image and video processing ([`src/perception/camera_perception.py`](src/perception/camera_perception.py))
+
+| Step | What it does |
+|---|---|
+| Map background subtraction | The known rack map is ray-cast into an *expected* depth image. Pixels clearly closer than expected, 0.15–1.7 m above the floor, are foreground. The threshold adapts to the depth noise measured on the floor. |
+| Depth hole filling | Stretch wrap makes the depth sensor see through an object in bands. A see-through band with foreground on both sides is filled (horizontal morphological closing), and those rays are marked uncertain. |
+| Depth image → range scan | Nearest return per bearing inside the robot's height band (like `depthimage_to_laserscan`). |
+| Detector | Fine-tuned YOLO11n, ONNX, CPU ([`onnx_detector.py`](src/perception/onnx_detector.py)). |
+| Box → metres | From the depth pixels in the box **and** from where the box touches the floor (ground-plane geometry). If they disagree, the nearer one wins. |
+| Gates | A box that does not stand out from the map (a parcel on a shelf), or has an impossible physical size, is rejected. |
+| Tracking | Kalman filter per object on the floor plane, compensated for the robot's own motion ([`tracking.py`](src/perception/tracking.py)). Weak detections can extend a track but never start one. |
+| Unknown obstacles | Foreground that no tracked object explains. |
+| Specular highlights | Saturated pixels in the obstacle band raise the uncertainty. |
+
+The perception code only reads the RGB image, the depth image, the camera
+calibration, the robot pose and the static map. The simulator's object list
+is used for scoring only.
+
+### Results (held-out objects, `python -m scripts.eval_real_image_sim`)
+
+**Detector on the robot's camera frames** (900 frames, objects within 6 m and at least 60 % visible; boxes at conf ≥ 0.25):
+
+| Detector | mAP@50 | Precision | Recall | person / forklift / package AP@50 |
+|---|---|---|---|---|
+| Before: `weights/yolo/best.pt` (trained on real photos only) | 53.9% | 80.9% | 49.3% | 94.6% / 53.8% / 13.3% |
+| **After: `weights/yolo/best.onnx`** (fine-tuned on real photos + composites) | 96.6% | 77.5% | 94.5% | 99.9% / 99.1% / 90.8% |
+| After, only the warehouse look that was never used for training | 95.6% | 72.2% | 93.2% | 99.9% / 98.5% / 88.4% |
+
+**Perception stack on driving video** (5535 frames from 24 drives):
+
+| Output | Precision | Recall | F1 |
+|---|---|---|---|
+| Detector alone (conf ≥ 0.25) | 77.3% | 91.2% | 83.6% |
+| + tracking, without the map / size gates | 80.1% | 94.1% | 86.6% |
+| + gates, without tracking | 95.7% | 87.7% | 91.5% |
+| **Full stack (gates + tracking)** | **89.0%** | **94.0%** | **91.4%** |
+
+* Distance error of detected objects: **0.09 m** mean absolute (bias -0.01 m).
+* Unknown objects (cones, tool cases, pallet stack): a depth-only box overlapped the object in **73.3%** of 1230 sightings within 5.5 m. The misses are mostly objects that are small in the image; the range scan the robot drives on still saw them (no collision in the navigation test below).
+* Speed: about 60 ms per frame for the whole perception stack on one CPU core (detector included), plus about 10 ms to render the frame.
+
+**Navigation, PPO + safety shield, 60 held-out layouts** (same layouts for both rows):
+
+| Perception | Reached goal | Collision | Time limit | Time to goal (s) |
+|---|---|---|---|---|
+| **Real-image camera, YOLO11n in the loop** | 73.3% | 0.0% | 26.7% | 34.8 |
+| Emulated detector (what the policy was trained with) | 80.0% | 0.0% | 20.0% | 36.9 |
+
+While driving these 60 episodes the stack's precision was 72.6% and its recall 83.7% (7169 object sightings). That is lower than on the driving video above, because in the episodes that time out the robot stands for a long time right in front of an object that is cut off by the image border, and every one of those frames is counted.
+
+**What the numbers say, and what they do not:**
+
+* Fine-tuning on composites was needed. The detector trained only on real
+  photos found workers from the robot's viewpoint (AP 95 %) but almost no
+  parcels (13 %): its parcel photos are all top-down conveyor-belt views.
+* The fine-tuned ONNX detector is the *simulation's* detector. On the
+  original real-photo test split it scores mAP@50 **79.3 %**, lower than
+  `best.pt` (87.7 %), so `best.pt` is still the model for real photos (the
+  📷 tab and the table further down). It was fine-tuned for only 2 epochs
+  on a CPU (the run was interrupted); a full run is the obvious next step
+  and may close that gap.
+* The detector alone has 77 % precision. The map and size gates remove most
+  false alarms (95.7 %). Tracking then trades some of that precision for
+  recall (87.7 % → 94.0 %), because a track is kept for two frames after
+  its last box.
+* With the real detector in the loop the robot never collided in 60
+  layouts, but it reached the goal a little less often than with the
+  emulated detector (73 % vs 80 %). The policy was trained on the emulated
+  obstacle map and was **not** retrained; the extra failures are time-outs.
+* Three bugs found by this test and fixed: a camera at 1 m lost low objects
+  when they were close (now 0.6 m); stretch-wrapped parcels were "seen
+  through" in bands (now filled); a wide pallet close to the side was drawn
+  outside the frame (cut-outs now cover the full footprint).
+* The frames are composites: real photo material placed on simulated
+  geometry, with a simulated depth sensor. Cut-outs are flat and do not
+  turn or walk. This is closer to a real camera than coloured slabs, but it
+  is still a simulation, not a physical-robot test.
 
 ## 🔍 Image recognition: YOLO11n fine-tuned on warehouse obstacles
 
@@ -258,6 +369,7 @@ Motors (unicycle model, acceleration and braking limits)
 | Evaluation (RL vs. rules, ablation, shield tests, seeds) | [`scripts/evaluate_navigation.py`](scripts/evaluate_navigation.py) |
 | Gradio demo | [`src/app/app.py`](src/app/app.py), [`app.py`](app.py) |
 | Real-image perception (YOLO11n + Depth Anything V2) | [`src/perception/`](src/perception/) |
+| Real-image camera (renderer, image/video processing, tracking) | [`src/simulation/photo_camera.py`](src/simulation/photo_camera.py), [`src/perception/camera_perception.py`](src/perception/camera_perception.py), [`src/perception/tracking.py`](src/perception/tracking.py) |
 
 ### Reinforcement-learning set-up
 
@@ -310,7 +422,7 @@ Evaluation: 100 episodes per row on held-out random layouts (`python -m scripts.
 * Safety shield, scripted "worker steps out at about 1 m": collision prevented in **100%** of 50 scenes.
 * Policy + shield decision time: 0.21 ms per frame (NumPy, CPU).
 
-**Where it still fails:** the remaining failures with the shield are time-outs, not crashes. The robot waits behind a worker or hesitates in narrow gaps. Uncertainty alone costs some success, because it slows the robot near shiny pallets; tracking recovers it. The detector branch in the simulator is a stand-in with 80–97 % recall, not our trained YOLO11n.
+**Where it still fails:** the remaining failures with the shield are time-outs, not crashes. The robot waits behind a worker or hesitates in narrow gaps. Uncertainty alone costs some success, because it slows the robot near shiny pallets; tracking recovers it. The numbers in this section use the *emulated* detector branch (a stand-in with 80–97 % recall), which is also what the PPO policy was trained with. The [real-image camera](#-real-image-camera-the-simulation-runs-on-real-warehouse-photos) section reports the same robot with the real YOLO11n in the loop.
 
 *These are simulation results on held-out random layouts (seeds not used in
 training). They are not physical-robot results.*
@@ -334,6 +446,23 @@ python -m unittest discover -s tests -t .
 
 `--export-npz` writes `models/ppo_warehouse_policy.npz`, which is the file
 the demo loads.
+
+### Real-image camera
+
+The demo only needs the committed files (`assets/sim/`, `weights/yolo/best.onnx`).
+To rebuild them from the datasets:
+
+```bash
+pip install -r requirements.txt -r requirements-perception.txt
+python -m scripts.build_warehouse_dataset --src data_downloads --download --out datasets/processed/warehouse3
+python scripts/build_sprite_bank.py --src data_downloads --dataset datasets/processed/warehouse3 --out assets/sim/sprites   # SAM 2.1 cut-outs
+python scripts/build_textures.py --src data_downloads --out assets/sim/textures                                             # rectified textures
+python -m scripts.make_sim_dataset --out datasets/processed/simcam --split train --frames 2600 --sprites train --styles a,b
+python -m scripts.make_sim_dataset --out datasets/processed/simcam --split val --frames 300 --sprites val --styles a,b --seed0 800000
+python training/finetune_sim_detector.py --epochs 8      # writes weights/yolo/best.onnx
+python -m scripts.eval_real_image_sim --episodes 60      # writes results/metrics/real_image_eval.json
+python -m scripts.record_demo --real-only                # results/demo/demo_real_camera*.gif
+```
 
 ### Detector training (Colab, LOCO dataset)
 
@@ -362,10 +491,11 @@ node presentation/build_deck.js
 ## Repository structure
 
 - `app.py`: demo entry point
-- `src/simulation/`: warehouse environment and renderer
+- `src/simulation/`: warehouse environment, renderer, real-image camera
 - `src/navigation/`: controllers (PPO in NumPy, rule-based baseline)
 - `src/safety/`: safety shield
-- `src/perception/`: YOLO detector, Depth Anything V2, fusion, live pipeline
+- `src/perception/`: YOLO detector (PyTorch and ONNX), Depth Anything V2, fusion, live pipeline, camera perception and tracking for the real-image camera
+- `assets/sim/`: real cut-outs and textures for the real-image camera
 - `src/evaluation/`: episode runner and metrics
 - `src/app/`: Gradio demo
 - `training/`: PPO and YOLO training

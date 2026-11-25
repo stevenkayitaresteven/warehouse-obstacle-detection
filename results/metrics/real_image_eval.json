@@ -1,0 +1,1721 @@
+{
+ "note": "Simulation with the real-image camera. Objects are val/test cut-outs the detector never saw. Not physical-robot results.",
+ "perception": {
+  "full": {
+   "frames": 5535,
+   "raw": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.6907717215326498,
+     "recall": 0.9343065693430657,
+     "f1": 0.7942910331988831,
+     "AP50": 0.9150039405371878,
+     "tp": 1280,
+     "fp": 573,
+     "fn": 90
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9224489795918367,
+     "recall": 0.8932806324110671,
+     "f1": 0.9076305220883534,
+     "AP50": 0.8878237342208395,
+     "tp": 452,
+     "fp": 38,
+     "fn": 54
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.814935064935065,
+     "recall": 0.8985680190930787,
+     "f1": 0.8547105561861521,
+     "AP50": 0.892958869717036,
+     "tp": 1506,
+     "fp": 342,
+     "fn": 170
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.7726079694583632,
+     "recall": 0.9115990990990991,
+     "f1": 0.8363683326875889,
+     "mAP50": 0.8985955148250211,
+     "tp": 3238,
+     "fp": 953,
+     "fn": 314
+    }
+   },
+   "stack": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.9220314735336195,
+     "recall": 0.9408759124087591,
+     "f1": 0.9313583815028902,
+     "AP50": 0.878742904492581,
+     "tp": 1289,
+     "fp": 109,
+     "fn": 81
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9530612244897959,
+     "recall": 0.9229249011857708,
+     "f1": 0.9377510040160644,
+     "AP50": 0.8964782499228503,
+     "tp": 467,
+     "fp": 23,
+     "fn": 39
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.8488745980707395,
+     "recall": 0.9451073985680191,
+     "f1": 0.8944099378881987,
+     "AP50": 0.8167421489479759,
+     "tp": 1584,
+     "fp": 282,
+     "fn": 92
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.8897176345231753,
+     "recall": 0.9403153153153153,
+     "f1": 0.9143169997262524,
+     "mAP50": 0.8639877677878024,
+     "tp": 3340,
+     "fp": 414,
+     "fn": 212
+    }
+   },
+   "range_mae_m": 0.09035157128277728,
+   "range_bias_m": -0.01115764546353129,
+   "unknown_recall": 0.7333333333333333,
+   "unknown_objects": 1230,
+   "ms_per_frame": 58.490120413186304
+  },
+  "no_tracking": {
+   "frames": 5535,
+   "raw": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.6907717215326498,
+     "recall": 0.9343065693430657,
+     "f1": 0.7942910331988831,
+     "AP50": 0.9150039405371878,
+     "tp": 1280,
+     "fp": 573,
+     "fn": 90
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9224489795918367,
+     "recall": 0.8932806324110671,
+     "f1": 0.9076305220883534,
+     "AP50": 0.8878237342208395,
+     "tp": 452,
+     "fp": 38,
+     "fn": 54
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.814935064935065,
+     "recall": 0.8985680190930787,
+     "f1": 0.8547105561861521,
+     "AP50": 0.892958869717036,
+     "tp": 1506,
+     "fp": 342,
+     "fn": 170
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.7726079694583632,
+     "recall": 0.9115990990990991,
+     "f1": 0.8363683326875889,
+     "mAP50": 0.8985955148250211,
+     "tp": 3238,
+     "fp": 953,
+     "fn": 314
+    }
+   },
+   "stack": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.966820987654321,
+     "recall": 0.9145985401459854,
+     "f1": 0.9399849962490623,
+     "AP50": 0.8846163377489413,
+     "tp": 1253,
+     "fp": 43,
+     "fn": 117
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9950980392156863,
+     "recall": 0.8023715415019763,
+     "f1": 0.888402625820569,
+     "AP50": 0.7994652406417111,
+     "tp": 406,
+     "fp": 2,
+     "fn": 100
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.9381044487427466,
+     "recall": 0.8681384248210023,
+     "f1": 0.9017663464518128,
+     "AP50": 0.8253092010871336,
+     "tp": 1455,
+     "fp": 96,
+     "fn": 221
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.9566820276497696,
+     "recall": 0.8766891891891891,
+     "f1": 0.9149405024239752,
+     "mAP50": 0.836463593159262,
+     "tp": 3114,
+     "fp": 141,
+     "fn": 438
+    }
+   },
+   "range_mae_m": 0.09171101853215846,
+   "range_bias_m": -0.017062230946620398,
+   "unknown_recall": 0.7268292682926829,
+   "unknown_objects": 1230,
+   "ms_per_frame": 12.734343723403034
+  },
+  "no_gates": {
+   "frames": 5535,
+   "raw": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.6907717215326498,
+     "recall": 0.9343065693430657,
+     "f1": 0.7942910331988831,
+     "AP50": 0.9150039405371878,
+     "tp": 1280,
+     "fp": 573,
+     "fn": 90
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9224489795918367,
+     "recall": 0.8932806324110671,
+     "f1": 0.9076305220883534,
+     "AP50": 0.8878237342208395,
+     "tp": 452,
+     "fp": 38,
+     "fn": 54
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.814935064935065,
+     "recall": 0.8985680190930787,
+     "f1": 0.8547105561861521,
+     "AP50": 0.892958869717036,
+     "tp": 1506,
+     "fp": 342,
+     "fn": 170
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.7726079694583632,
+     "recall": 0.9115990990990991,
+     "f1": 0.8363683326875889,
+     "mAP50": 0.8985955148250211,
+     "tp": 3238,
+     "fp": 953,
+     "fn": 314
+    }
+   },
+   "stack": {
+    "person": {
+     "objects": 1370,
+     "precision": 0.7134146341463414,
+     "recall": 0.9394160583941605,
+     "f1": 0.8109640831758033,
+     "AP50": 0.7101363900754702,
+     "tp": 1287,
+     "fp": 517,
+     "fn": 83
+    },
+    "forklift": {
+     "objects": 506,
+     "precision": 0.9433198380566802,
+     "recall": 0.9209486166007905,
+     "f1": 0.932,
+     "AP50": 0.8935179955430447,
+     "tp": 466,
+     "fp": 28,
+     "fn": 40
+    },
+    "package": {
+     "objects": 1676,
+     "precision": 0.8489054991991457,
+     "recall": 0.9486873508353222,
+     "f1": 0.8960270498732036,
+     "AP50": 0.8198436003594342,
+     "tp": 1590,
+     "fp": 283,
+     "fn": 86
+    },
+    "all": {
+     "objects": 3552,
+     "precision": 0.8014864540877488,
+     "recall": 0.9411599099099099,
+     "f1": 0.8657257542405801,
+     "mAP50": 0.8078326619926498,
+     "tp": 3343,
+     "fp": 828,
+     "fn": 209
+    }
+   },
+   "range_mae_m": 0.0931015415846597,
+   "range_bias_m": -0.01390190804144134,
+   "unknown_recall": 0.7308943089430894,
+   "unknown_objects": 1230,
+   "ms_per_frame": 12.289244809392102
+  },
+  "full_style_c_only": {
+   "frames": 1869,
+   "raw": {
+    "person": {
+     "objects": 493,
+     "precision": 0.6457725947521866,
+     "recall": 0.8985801217038539,
+     "f1": 0.7514843087362171,
+     "AP50": 0.8861084953884879,
+     "tp": 443,
+     "fp": 243,
+     "fn": 50
+    },
+    "forklift": {
+     "objects": 136,
+     "precision": 0.9084507042253521,
+     "recall": 0.9485294117647058,
+     "f1": 0.9280575539568344,
+     "AP50": 0.9442424061228889,
+     "tp": 129,
+     "fp": 13,
+     "fn": 7
+    },
+    "package": {
+     "objects": 750,
+     "precision": 0.8915211970074813,
+     "recall": 0.9533333333333334,
+     "f1": 0.9213917525773198,
+     "AP50": 0.9520474986107808,
+     "tp": 715,
+     "fp": 87,
+     "fn": 35
+    },
+    "all": {
+     "objects": 1379,
+     "precision": 0.7895705521472393,
+     "recall": 0.9332849891225525,
+     "f1": 0.8554336989032901,
+     "mAP50": 0.9274661333740525,
+     "tp": 1287,
+     "fp": 343,
+     "fn": 92
+    }
+   },
+   "stack": {
+    "person": {
+     "objects": 493,
+     "precision": 0.8953722334004024,
+     "recall": 0.9026369168356998,
+     "f1": 0.8989898989898989,
+     "AP50": 0.8140181627691924,
+     "tp": 445,
+     "fp": 52,
+     "fn": 48
+    },
+    "forklift": {
+     "objects": 136,
+     "precision": 0.9618320610687023,
+     "recall": 0.9264705882352942,
+     "f1": 0.9438202247191011,
+     "AP50": 0.9179880529042405,
+     "tp": 126,
+     "fp": 5,
+     "fn": 10
+    },
+    "package": {
+     "objects": 750,
+     "precision": 0.9182630906768838,
+     "recall": 0.9586666666666667,
+     "f1": 0.9380300065231572,
+     "AP50": 0.9474900160334077,
+     "tp": 719,
+     "fp": 64,
+     "fn": 31
+    },
+    "all": {
+     "objects": 1379,
+     "precision": 0.9142452161587526,
+     "recall": 0.9354604786076868,
+     "f1": 0.924731182795699,
+     "mAP50": 0.8931654105689469,
+     "tp": 1290,
+     "fp": 121,
+     "fn": 89
+    }
+   },
+   "range_mae_m": 0.10265015584840183,
+   "range_bias_m": 0.01167249169794538,
+   "unknown_recall": 0.5910543130990416,
+   "unknown_objects": 626,
+   "ms_per_frame": 58.28738862011576
+  }
+ },
+ "navigation": {
+  "real_image_camera": {
+   "episodes": 60,
+   "success_rate": 0.7333333333333333,
+   "collision_rate": 0.0,
+   "timeout_rate": 0.26666666666666666,
+   "mean_time_to_goal_s": 34.76818181818182,
+   "collisions_by_class": {},
+   "per_episode": [
+    {
+     "seed": 10000,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 79,
+     "near_misses": 0,
+     "interventions": 1
+    },
+    {
+     "seed": 10001,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 281,
+     "near_misses": 1,
+     "interventions": 130
+    },
+    {
+     "seed": 10002,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 11,
+     "interventions": 88
+    },
+    {
+     "seed": 10003,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 138,
+     "near_misses": 3,
+     "interventions": 24
+    },
+    {
+     "seed": 10004,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 93,
+     "near_misses": 0,
+     "interventions": 4
+    },
+    {
+     "seed": 10005,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 122,
+     "near_misses": 3,
+     "interventions": 6
+    },
+    {
+     "seed": 10006,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 393,
+     "near_misses": 8,
+     "interventions": 131
+    },
+    {
+     "seed": 10007,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 91,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10008,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 87,
+     "near_misses": 0,
+     "interventions": 6
+    },
+    {
+     "seed": 10009,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 18
+    },
+    {
+     "seed": 10010,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 185,
+     "near_misses": 2,
+     "interventions": 18
+    },
+    {
+     "seed": 10011,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 3
+    },
+    {
+     "seed": 10012,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 392,
+     "near_misses": 2,
+     "interventions": 117
+    },
+    {
+     "seed": 10013,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 211,
+     "near_misses": 3,
+     "interventions": 83
+    },
+    {
+     "seed": 10014,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 180,
+     "near_misses": 2,
+     "interventions": 34
+    },
+    {
+     "seed": 10015,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 239,
+     "near_misses": 2,
+     "interventions": 37
+    },
+    {
+     "seed": 10016,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 344,
+     "near_misses": 2,
+     "interventions": 173
+    },
+    {
+     "seed": 10017,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 133,
+     "near_misses": 0,
+     "interventions": 9
+    },
+    {
+     "seed": 10018,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 206,
+     "near_misses": 4,
+     "interventions": 41
+    },
+    {
+     "seed": 10019,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 125,
+     "near_misses": 1,
+     "interventions": 12
+    },
+    {
+     "seed": 10020,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 162,
+     "near_misses": 0,
+     "interventions": 25
+    },
+    {
+     "seed": 10021,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 247,
+     "near_misses": 1,
+     "interventions": 34
+    },
+    {
+     "seed": 10022,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 293
+    },
+    {
+     "seed": 10023,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 99,
+     "near_misses": 1,
+     "interventions": 9
+    },
+    {
+     "seed": 10024,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 190,
+     "near_misses": 2,
+     "interventions": 32
+    },
+    {
+     "seed": 10025,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 112,
+     "near_misses": 0,
+     "interventions": 10
+    },
+    {
+     "seed": 10026,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 141,
+     "near_misses": 0,
+     "interventions": 16
+    },
+    {
+     "seed": 10027,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 5,
+     "interventions": 137
+    },
+    {
+     "seed": 10028,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 135,
+     "near_misses": 0,
+     "interventions": 6
+    },
+    {
+     "seed": 10029,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 87,
+     "near_misses": 0,
+     "interventions": 1
+    },
+    {
+     "seed": 10030,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 177,
+     "near_misses": 2,
+     "interventions": 52
+    },
+    {
+     "seed": 10031,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 222,
+     "near_misses": 2,
+     "interventions": 78
+    },
+    {
+     "seed": 10032,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 99,
+     "near_misses": 2,
+     "interventions": 12
+    },
+    {
+     "seed": 10033,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 115,
+     "near_misses": 0,
+     "interventions": 12
+    },
+    {
+     "seed": 10034,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 6,
+     "interventions": 57
+    },
+    {
+     "seed": 10035,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 176,
+     "near_misses": 3,
+     "interventions": 36
+    },
+    {
+     "seed": 10036,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 330,
+     "near_misses": 4,
+     "interventions": 56
+    },
+    {
+     "seed": 10037,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 137,
+     "near_misses": 0,
+     "interventions": 26
+    },
+    {
+     "seed": 10038,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 113,
+     "near_misses": 1,
+     "interventions": 8
+    },
+    {
+     "seed": 10039,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 99,
+     "near_misses": 0,
+     "interventions": 3
+    },
+    {
+     "seed": 10040,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 69,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10041,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 91,
+     "near_misses": 0,
+     "interventions": 7
+    },
+    {
+     "seed": 10042,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10043,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 103,
+     "near_misses": 1,
+     "interventions": 24
+    },
+    {
+     "seed": 10044,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 4,
+     "interventions": 384
+    },
+    {
+     "seed": 10045,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 297,
+     "near_misses": 2,
+     "interventions": 37
+    },
+    {
+     "seed": 10046,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 4,
+     "interventions": 89
+    },
+    {
+     "seed": 10047,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 398
+    },
+    {
+     "seed": 10048,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 351
+    },
+    {
+     "seed": 10049,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 435
+    },
+    {
+     "seed": 10050,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 10,
+     "interventions": 58
+    },
+    {
+     "seed": 10051,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 139,
+     "near_misses": 0,
+     "interventions": 23
+    },
+    {
+     "seed": 10052,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 111,
+     "near_misses": 0,
+     "interventions": 13
+    },
+    {
+     "seed": 10053,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 92,
+     "near_misses": 2,
+     "interventions": 13
+    },
+    {
+     "seed": 10054,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 401,
+     "near_misses": 3,
+     "interventions": 12
+    },
+    {
+     "seed": 10055,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 342
+    },
+    {
+     "seed": 10056,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 4,
+     "interventions": 238
+    },
+    {
+     "seed": 10057,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 3,
+     "interventions": 69
+    },
+    {
+     "seed": 10058,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 130,
+     "near_misses": 0,
+     "interventions": 14
+    },
+    {
+     "seed": 10059,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 276,
+     "near_misses": 2,
+     "interventions": 46
+    }
+   ]
+  },
+  "in_loop_perception": {
+   "frames": 14909,
+   "raw": {
+    "person": {
+     "objects": 3009,
+     "precision": 0.6031810766721044,
+     "recall": 0.9830508474576272,
+     "f1": 0.747630481486162,
+     "AP50": 0.901494582357554,
+     "tp": 2958,
+     "fp": 1946,
+     "fn": 51
+    },
+    "forklift": {
+     "objects": 785,
+     "precision": 0.8346915017462165,
+     "recall": 0.913375796178344,
+     "f1": 0.8722627737226278,
+     "AP50": 0.9022790721527034,
+     "tp": 717,
+     "fp": 142,
+     "fn": 68
+    },
+    "package": {
+     "objects": 3375,
+     "precision": 0.6072026800670016,
+     "recall": 0.6444444444444445,
+     "f1": 0.6252695127210004,
+     "AP50": 0.5969948595754542,
+     "tp": 2175,
+     "fp": 1407,
+     "fn": 1200
+    },
+    "all": {
+     "objects": 7169,
+     "precision": 0.6260032102728732,
+     "recall": 0.8160133909889803,
+     "f1": 0.7084897662589318,
+     "mAP50": 0.8002561713619039,
+     "tp": 5850,
+     "fp": 3495,
+     "fn": 1319
+    }
+   },
+   "stack": {
+    "person": {
+     "objects": 3009,
+     "precision": 0.7243230056111246,
+     "recall": 0.9867065470255899,
+     "f1": 0.8353967360720315,
+     "AP50": 0.7494572781529436,
+     "tp": 2969,
+     "fp": 1130,
+     "fn": 40
+    },
+    "forklift": {
+     "objects": 785,
+     "precision": 0.9588313413014609,
+     "recall": 0.9197452229299363,
+     "f1": 0.9388816644993498,
+     "AP50": 0.8867710277932646,
+     "tp": 722,
+     "fp": 31,
+     "fn": 63
+    },
+    "package": {
+     "objects": 3375,
+     "precision": 0.6766169154228856,
+     "recall": 0.685037037037037,
+     "f1": 0.6808009422850413,
+     "AP50": 0.5200409818938787,
+     "tp": 2312,
+     "fp": 1105,
+     "fn": 1063
+    },
+    "all": {
+     "objects": 7169,
+     "precision": 0.7259644455194099,
+     "recall": 0.8373552796763845,
+     "f1": 0.7776914108045082,
+     "mAP50": 0.7187564292800289,
+     "tp": 6003,
+     "fp": 2266,
+     "fn": 1166
+    }
+   },
+   "range_mae_m": 0.08459101012228538,
+   "range_bias_m": -0.009279335941335067,
+   "unknown_recall": 0.913982569154983,
+   "unknown_objects": 2639,
+   "ms_per_frame": 58.864432091823225
+  },
+  "emulated": {
+   "episodes": 60,
+   "success_rate": 0.8,
+   "collision_rate": 0.0,
+   "timeout_rate": 0.2,
+   "mean_time_to_goal_s": 36.85,
+   "collisions_by_class": {},
+   "per_episode": [
+    {
+     "seed": 10000,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 80,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10001,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 195,
+     "near_misses": 9,
+     "interventions": 38
+    },
+    {
+     "seed": 10002,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 223,
+     "near_misses": 1,
+     "interventions": 22
+    },
+    {
+     "seed": 10003,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 135,
+     "near_misses": 1,
+     "interventions": 14
+    },
+    {
+     "seed": 10004,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 90,
+     "near_misses": 0,
+     "interventions": 4
+    },
+    {
+     "seed": 10005,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 123,
+     "near_misses": 1,
+     "interventions": 1
+    },
+    {
+     "seed": 10006,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 248,
+     "near_misses": 5,
+     "interventions": 65
+    },
+    {
+     "seed": 10007,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 98,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10008,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 87,
+     "near_misses": 0,
+     "interventions": 3
+    },
+    {
+     "seed": 10009,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 1,
+     "interventions": 8
+    },
+    {
+     "seed": 10010,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 290,
+     "near_misses": 4,
+     "interventions": 114
+    },
+    {
+     "seed": 10011,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 327,
+     "near_misses": 3,
+     "interventions": 10
+    },
+    {
+     "seed": 10012,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 299,
+     "near_misses": 6,
+     "interventions": 88
+    },
+    {
+     "seed": 10013,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 204,
+     "near_misses": 4,
+     "interventions": 84
+    },
+    {
+     "seed": 10014,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 185,
+     "near_misses": 3,
+     "interventions": 39
+    },
+    {
+     "seed": 10015,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 5,
+     "interventions": 203
+    },
+    {
+     "seed": 10016,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 131,
+     "near_misses": 2,
+     "interventions": 22
+    },
+    {
+     "seed": 10017,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 3
+    },
+    {
+     "seed": 10018,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10019,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 115,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10020,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 341,
+     "near_misses": 5,
+     "interventions": 91
+    },
+    {
+     "seed": 10021,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 360,
+     "near_misses": 4,
+     "interventions": 50
+    },
+    {
+     "seed": 10022,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 127
+    },
+    {
+     "seed": 10023,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 119,
+     "near_misses": 1,
+     "interventions": 8
+    },
+    {
+     "seed": 10024,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 153,
+     "near_misses": 2,
+     "interventions": 5
+    },
+    {
+     "seed": 10025,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 121,
+     "near_misses": 0,
+     "interventions": 14
+    },
+    {
+     "seed": 10026,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 122,
+     "near_misses": 1,
+     "interventions": 13
+    },
+    {
+     "seed": 10027,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 8,
+     "interventions": 100
+    },
+    {
+     "seed": 10028,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 142,
+     "near_misses": 2,
+     "interventions": 6
+    },
+    {
+     "seed": 10029,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 91,
+     "near_misses": 0,
+     "interventions": 9
+    },
+    {
+     "seed": 10030,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 401,
+     "near_misses": 3,
+     "interventions": 156
+    },
+    {
+     "seed": 10031,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 328,
+     "near_misses": 4,
+     "interventions": 87
+    },
+    {
+     "seed": 10032,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 97,
+     "near_misses": 2,
+     "interventions": 7
+    },
+    {
+     "seed": 10033,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 368,
+     "near_misses": 3,
+     "interventions": 126
+    },
+    {
+     "seed": 10034,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 313,
+     "near_misses": 3,
+     "interventions": 34
+    },
+    {
+     "seed": 10035,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 172,
+     "near_misses": 7,
+     "interventions": 42
+    },
+    {
+     "seed": 10036,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 3,
+     "interventions": 17
+    },
+    {
+     "seed": 10037,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 144,
+     "near_misses": 2,
+     "interventions": 31
+    },
+    {
+     "seed": 10038,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 117,
+     "near_misses": 1,
+     "interventions": 5
+    },
+    {
+     "seed": 10039,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 107,
+     "near_misses": 0,
+     "interventions": 1
+    },
+    {
+     "seed": 10040,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 69,
+     "near_misses": 0,
+     "interventions": 0
+    },
+    {
+     "seed": 10041,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 87,
+     "near_misses": 1,
+     "interventions": 10
+    },
+    {
+     "seed": 10042,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 128,
+     "near_misses": 1,
+     "interventions": 11
+    },
+    {
+     "seed": 10043,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 328,
+     "near_misses": 2,
+     "interventions": 65
+    },
+    {
+     "seed": 10044,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 166,
+     "near_misses": 2,
+     "interventions": 15
+    },
+    {
+     "seed": 10045,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 297,
+     "near_misses": 5,
+     "interventions": 27
+    },
+    {
+     "seed": 10046,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 253,
+     "near_misses": 1,
+     "interventions": 12
+    },
+    {
+     "seed": 10047,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 244,
+     "near_misses": 1,
+     "interventions": 143
+    },
+    {
+     "seed": 10048,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 163,
+     "near_misses": 2,
+     "interventions": 58
+    },
+    {
+     "seed": 10049,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 102,
+     "near_misses": 1,
+     "interventions": 18
+    },
+    {
+     "seed": 10050,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 3,
+     "interventions": 318
+    },
+    {
+     "seed": 10051,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 197,
+     "near_misses": 4,
+     "interventions": 42
+    },
+    {
+     "seed": 10052,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 103,
+     "near_misses": 0,
+     "interventions": 12
+    },
+    {
+     "seed": 10053,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 109,
+     "near_misses": 1,
+     "interventions": 10
+    },
+    {
+     "seed": 10054,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 0,
+     "interventions": 2
+    },
+    {
+     "seed": 10055,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 156,
+     "near_misses": 1,
+     "interventions": 20
+    },
+    {
+     "seed": 10056,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 325
+    },
+    {
+     "seed": 10057,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 5,
+     "interventions": 77
+    },
+    {
+     "seed": 10058,
+     "reached": true,
+     "collided": false,
+     "collision_with": null,
+     "steps": 116,
+     "near_misses": 3,
+     "interventions": 17
+    },
+    {
+     "seed": 10059,
+     "reached": false,
+     "collided": false,
+     "collision_with": null,
+     "steps": 450,
+     "near_misses": 2,
+     "interventions": 370
+    }
+   ]
+  }
+ },
+ "episodes": 60,
+ "detector_on_camera_frames": {
+  "note": "900 held-out frames (val/test cut-outs, styles a/b/c). before = weights/yolo/best.pt exported to ONNX, after = weights/yolo/best.onnx.",
+  "frames": 900,
+  "before": {
+   "person": {
+    "objects": 284,
+    "precision": 0.8725490196078431,
+    "recall": 0.9401408450704225,
+    "f1": 0.9050847457627118,
+    "AP50": 0.9460457385920626,
+    "tp": 267,
+    "fp": 39,
+    "fn": 17
+   },
+   "forklift": {
+    "objects": 73,
+    "precision": 0.9259259259259259,
+    "recall": 0.3424657534246575,
+    "f1": 0.5,
+    "AP50": 0.5383027413510462,
+    "tp": 25,
+    "fp": 2,
+    "fn": 48
+   },
+   "package": {
+    "objects": 312,
+    "precision": 0.5066666666666667,
+    "recall": 0.12179487179487179,
+    "f1": 0.19638242894056848,
+    "AP50": 0.13325678494706422,
+    "tp": 38,
+    "fp": 37,
+    "fn": 274
+   },
+   "all": {
+    "objects": 669,
+    "precision": 0.8088235294117647,
+    "recall": 0.49327354260089684,
+    "f1": 0.6128133704735376,
+    "mAP50": 0.5392017549633911,
+    "tp": 330,
+    "fp": 78,
+    "fn": 339
+   }
+  },
+  "after": {
+   "person": {
+    "objects": 284,
+    "precision": 0.8022598870056498,
+    "recall": 1.0,
+    "f1": 0.8902821316614421,
+    "AP50": 0.999156398579371,
+    "tp": 284,
+    "fp": 70,
+    "fn": 0
+   },
+   "forklift": {
+    "objects": 73,
+    "precision": 0.8780487804878049,
+    "recall": 0.9863013698630136,
+    "f1": 0.9290322580645162,
+    "AP50": 0.9908556563390662,
+    "tp": 72,
+    "fp": 10,
+    "fn": 1
+   },
+   "package": {
+    "objects": 312,
+    "precision": 0.7282321899736148,
+    "recall": 0.8846153846153846,
+    "f1": 0.7988422575976846,
+    "AP50": 0.9082566186681027,
+    "tp": 276,
+    "fp": 103,
+    "fn": 36
+   },
+   "all": {
+    "objects": 669,
+    "precision": 0.7754601226993865,
+    "recall": 0.9446935724962631,
+    "f1": 0.8517520215633423,
+    "mAP50": 0.9660895578621801,
+    "tp": 632,
+    "fp": 183,
+    "fn": 37
+   }
+  },
+  "after_style_c": {
+   "person": {
+    "objects": 114,
+    "precision": 0.7261146496815286,
+    "recall": 1.0,
+    "f1": 0.8413284132841329,
+    "AP50": 0.9991248964501769,
+    "tp": 114,
+    "fp": 43,
+    "fn": 0
+   },
+   "forklift": {
+    "objects": 26,
+    "precision": 0.7878787878787878,
+    "recall": 1.0,
+    "f1": 0.8813559322033898,
+    "AP50": 0.9854312354312355,
+    "tp": 26,
+    "fp": 7,
+    "fn": 0
+   },
+   "package": {
+    "objects": 153,
+    "precision": 0.7074468085106383,
+    "recall": 0.869281045751634,
+    "f1": 0.7800586510263929,
+    "AP50": 0.8837883231341621,
+    "tp": 133,
+    "fp": 55,
+    "fn": 20
+   },
+   "all": {
+    "objects": 293,
+    "precision": 0.7222222222222222,
+    "recall": 0.931740614334471,
+    "f1": 0.8137108792846498,
+    "mAP50": 0.9561148183385249,
+    "tp": 273,
+    "fp": 105,
+    "fn": 20
+   }
+  },
+  "frames_style_c": 381
+ },
+ "detector_on_real_test_split": {
+  "note": "Held-out real photos (189 images, imgsz 416, ultralytics val).",
+  "before_best_pt": {
+   "mAP50": 0.8767,
+   "mAP50_95": 0.6742,
+   "precision": 0.8806,
+   "recall": 0.8396
+  },
+  "after_finetune": {
+   "mAP50": 0.7931,
+   "mAP50_95": 0.5374,
+   "precision": 0.8018,
+   "recall": 0.7389,
+   "per_class_AP50": {
+    "person": 0.7965,
+    "forklift": 0.6862,
+    "package": 0.8966
+   }
+  }
+ },
+ "frames_episodes": 24,
+ "detector_training": "weights/yolo/best.onnx: best.pt fine-tuned for 2 epochs (imgsz 512, AdamW) on the 1,699 real training photos + 2,600 composite frames with train-split cut-outs; last-epoch weights, no checkpoint selection."
+}

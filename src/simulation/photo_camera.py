@@ -534,7 +534,7 @@ class PhotoCamera:
             z_front = ct * (nx - env.x) + st * (ny - env.y)
         if z_front < 0.12:
             z_front = 0.12
-        lim = math.radians(88)
+        lim = math.radians(80)
         lo, hi = max(lo, -lim), min(hi, lim)
         if hi <= lo:
             return None
@@ -559,10 +559,39 @@ class PhotoCamera:
                 continue
             items.append((z_front, o, u_lo, u_hi, rng_near))
         items.sort(key=lambda t: -t[0])                 # far -> near
+        # Depth of each object per image column = distance to its real
+        # footprint along that column's ray. The picture is a flat cut-out,
+        # but its depth follows the footprint, so the depth image is
+        # geometrically exact for what the robot can collide with.
+        ang = env.theta + self.col_angle
+        dxs, dys = np.cos(ang), np.sin(ang)
+        zcol = {}
+        boxes = [t[1] for t in items if not t[1].is_circle]
+        circles = [t[1] for t in items if t[1].is_circle]
+        if boxes:
+            D = _ray_aabb(env.x, env.y, dxs, dys,
+                          np.array([o.x for o in boxes]),
+                          np.array([o.y for o in boxes]),
+                          np.array([o.hw for o in boxes]),
+                          np.array([o.hh for o in boxes]))
+            for j, o in enumerate(boxes):
+                zcol[id(o)] = D[:, j] * self.cos_a
+        if circles:
+            D = _ray_circle(env.x, env.y, dxs, dys,
+                            np.array([o.x for o in circles]),
+                            np.array([o.y for o in circles]),
+                            np.array([o.radius for o in circles]))
+            for j, o in enumerate(circles):
+                zcol[id(o)] = D[:, j] * self.cos_a
         records, mirror = [], []
         for k, (z_front, o, u_lo, u_hi, rng_near) in enumerate(items):
             cand = self._sprites_for(o)
             ext_w = max(u_hi - u_lo, 2.0)
+            if o.category == BOX:
+                # cones taper: draw them a bit wider so that the part a
+                # depth sensor sees covers the whole square footprint
+                u_lo, u_hi = u_lo - 0.14 * ext_w, u_hi + 0.14 * ext_w
+                ext_w *= 1.28
             width_m = ext_w * z_front / f
             # choose the view whose proportions fit the footprint best
             best = self.current[o.uid]
@@ -583,7 +612,10 @@ class PhotoCamera:
                 h_m = sp.height_m
             h_px = f * h_m / z_front
             w_nat = sp.aspect * h_px
-            w_px = float(np.clip(ext_w, 0.78 * w_nat, 1.30 * w_nat))
+            # The cut-out always covers the whole footprint of the object
+            # (stretched if it has to), so what the camera shows is never
+            # narrower than what the robot can collide with.
+            w_px = float(max(ext_w, 0.78 * w_nat))
             uc = 0.5 * (u_lo + u_hi)
             x0 = uc - w_px / 2
             y1 = self.cy + f * self.cam_h / z_front          # feet row
@@ -622,7 +654,17 @@ class PhotoCamera:
             full_px = total / max(((ix1 - ix0) * (iy1 - iy0))
                                   / max(w_px * h_px, 1.0), 1e-3)
             roi_z = zbuf[iy0:iy1, ix0:ix1]
-            vis = (roi_z > z_front) & (alpha > 0.02)
+            zc = zcol[id(o)][ix0:ix1]
+            ok = np.isfinite(zc)
+            if ok.any():
+                idx = np.arange(len(zc))
+                zc = np.clip(np.interp(idx, idx[ok], zc[ok]),
+                             0.97 * z_front, z_front + 3.0)
+            else:
+                zc = np.full(ix1 - ix0, z_front)
+            zc = np.broadcast_to(zc.astype(np.float32)[None, :],
+                                 roi_z.shape)
+            vis = (roi_z > zc) & (alpha > 0.02)
             a = np.where(vis, alpha, 0.0)[..., None]
             roi = img[iy0:iy1, ix0:ix1]
             # contact shadow on the floor under the object
@@ -631,7 +673,7 @@ class PhotoCamera:
             shade = 0.62 + 0.42 * math.exp(-z_front / 11.0)
             roi[:] = roi * (1 - a) + patch[..., :3] * shade * (a > 0)
             solid = vis & (alpha > 0.5)
-            roi_z[solid] = z_front
+            roi_z[solid] = zc[solid]
             ids[iy0:iy1, ix0:ix1][solid] = len(records)
             groi = glint[iy0:iy1, ix0:ix1]
             groi *= (1 - a[..., 0])            # nearer object hides glints
